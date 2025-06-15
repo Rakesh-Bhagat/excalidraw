@@ -14,3 +14,11 @@ export const signinSchema = z.object({
 export const createRoomSchema = z.object({
     roomId: z.string()
 })
+
+declare global {
+  namespace Express {
+    export interface Request {
+      userId: string;
+    }
+  }
+}
