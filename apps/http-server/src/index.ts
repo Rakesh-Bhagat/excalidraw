@@ -4,20 +4,24 @@ import { JWT_SECRET } from "@repo/backend-common/JWT_SECRET";
 import middleware from "./middleware";
 import { prisma } from "@repo/db/client";
 import bcrypt from "bcrypt"
+import {createUserSchema, signinSchema} from "@repo/common/types"
 
 const app = express();
 app.use(express.json());
 
 app.post("/signup", async (req: Request, res: Response) : Promise<any> => {
-  const { name, username, password } = req.body;
+  const parsedData = createUserSchema.safeParse(req.body);
 
-  if (!username || !password) {
-    return res.status(400).json({ message: "All fields are required" });
+  if(!parsedData.success){
+    return res.status(401).json({
+      message: "wrong inputs"
+    })
   }
+
 
   const existingUser = await prisma.user.findUnique({
     where: {
-      username,
+      username: parsedData.data.username,
     },
   });
 
@@ -27,13 +31,13 @@ app.post("/signup", async (req: Request, res: Response) : Promise<any> => {
     });
   }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const hashedPassword = await bcrypt.hash(parsedData.data.password, 10);
 
   try {
     const user = await prisma.user.create({
       data: {
-        name,
-        username,
+        name: parsedData.data.name,
+        username: parsedData.data.username,
         password: hashedPassword
       },
     });
@@ -51,19 +55,22 @@ app.post("/signup", async (req: Request, res: Response) : Promise<any> => {
 });
 
 app.post("/signin", async (req: Request, res: Response): Promise<any> => {
-    const { username, password } = req.body;
+  const parsedData = signinSchema.safeParse(req.body);
+  if(!parsedData.success){
+    return res.json({message: "wrong Inputs"}).status(401)
+  }
 
     const user = await prisma.user.findFirst({
         where:{
-            username
+            username: parsedData.data?.username
         }
     })
     if(!user){
-        return res.status(403).json({"message": "Incorrect Inputs"})
+        return res.status(403).json({"message": "No User exists"})
     }
 
 
-    const correctPassword = bcrypt.compare(password, user.password)
+    const correctPassword = bcrypt.compare(parsedData.data.password, user.password)
     if(!correctPassword){
         return res.status(403).json({"message": "wrong password"})
     }
