@@ -97,6 +97,7 @@ app.post("/room", middleware, async (req: Request, res: Response): Promise<any> 
     try {
       const room = await prisma.room.create({
         data: {
+          name: parsedData.data.name,
           creatorId: userId,
         },
       });

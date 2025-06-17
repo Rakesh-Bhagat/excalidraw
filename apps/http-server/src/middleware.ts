@@ -2,6 +2,13 @@ import { JWT_SECRET } from "@repo/backend-common/JWT_SECRET";
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 
+declare global {
+  namespace Express {
+    export interface Request {
+      userId: string;
+    }
+  }
+}
 export default  function middleware(
   req: Request,
   res: Response,

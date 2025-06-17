@@ -12,13 +12,19 @@ export const signinSchema = z.object({
 })
 
 export const createRoomSchema = z.object({
-    roomId: z.string()
+    name: z.string()
 })
 
-declare global {
-  namespace Express {
-    export interface Request {
-      userId: string;
-    }
-  }
-}
+// export enum wsDataType{
+//   JOIN = "join-room",
+//   LEAVE = "leave-room",
+//   CHAT = "chat"
+// }
+
+// declare global {
+//   namespace Express {
+//     export interface Request {
+//       userId: string;
+//     }
+//   }
+// }
