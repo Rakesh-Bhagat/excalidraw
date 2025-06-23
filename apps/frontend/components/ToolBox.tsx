@@ -1,0 +1,35 @@
+import { useToolStore } from "@/store/useToolStore";
+import { Circle, Square } from "lucide-react";
+
+const ToolBox = () => {
+  const currentTool = useToolStore((state) => state.currentTool);
+  const setCurrentTool = useToolStore((state) => state.setCurrentTool);
+  return (
+    <div className="flex  px-5 py-3 rounded-lg bg-[hsl(var(--toolbox))] text-white">
+      <div className="flex gap-2  justify-center items-center">
+        <div className="flex hover:bg-[hsl(var(--icon-hover))] w-full">
+          <button
+            onClick={() => {
+              setCurrentTool("rectangle");
+            }}
+            className={`cursor-pointer p-2 rounded  ${currentTool == "rectangle" ? "bg-[hsl(var(--icon-selected))] fill-current text-white" : ""}`}
+          >
+            <Square className={`w-5 h-5 ${currentTool == 'rectangle'? "fill-current text-white": ""}`} />
+          </button>
+        </div>
+        <div className="flex hover:bg-[hsl(var(--icon-hover))] w-full ">
+          <button
+            onClick={() => {
+              setCurrentTool("ellipse");
+            }}
+            className={`cursor-pointer p-2 rounded  ${currentTool == "ellipse" ? "bg-[hsl(var(--icon-selected))] fill-current text-white" : ""}`}
+          >
+            <Circle className={`w-5 h-5 ${currentTool == 'ellipse'? "fill-current text-white": ""}`} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ToolBox;

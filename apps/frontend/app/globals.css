@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+@layer base{
+    :root{
+        --toolbox : 240, 8%, 15%;
+        --canvasBackground: 0, 0%, 7%;
+        --icon-hover: 245, 12%, 20%;
+        --icon-selected: 243, 26%, 33%
+    }
+}

@@ -21,10 +21,3 @@ export const createRoomSchema = z.object({
 //   CHAT = "chat"
 // }
 
-// declare global {
-//   namespace Express {
-//     export interface Request {
-//       userId: string;
-//     }
-//   }
-// }
