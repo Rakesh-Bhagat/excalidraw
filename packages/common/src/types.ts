@@ -21,3 +21,7 @@ export const createRoomSchema = z.object({
 //   CHAT = "chat"
 // }
 
+
+// export type createUserInput = z.infer<typeof createUserSchema>;
+// export type signinInput = z.infer<typeof signinSchema>;
+// export type createRoomInput = z.infer<typeof createRoomSchema>;

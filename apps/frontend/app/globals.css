@@ -5,6 +5,10 @@
         --toolbox : 240, 8%, 15%;
         --canvasBackground: 0, 0%, 7%;
         --icon-hover: 245, 12%, 20%;
-        --icon-selected: 243, 26%, 33%
+        --icon-selected: 243, 26%, 33%;
+        --auth-background: 260, 19%, 18%;
+        --input-background: 256, 17%, 25%;
+        --input-button: 270, 76%, 49%;
+        --tool-fill: 242, 100%, 94%
     }
 }

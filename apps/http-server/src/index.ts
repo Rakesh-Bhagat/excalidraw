@@ -4,6 +4,7 @@ import { JWT_SECRET } from "@repo/backend-common/JWT_SECRET";
 import middleware from "./middleware";
 import { prisma } from "@repo/db/client";
 import bcrypt from "bcrypt";
+import cors from "cors"
 import {
   createRoomSchema,
   createUserSchema,
@@ -11,7 +12,21 @@ import {
 } from "@repo/common/types";
 
 const app = express();
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "http://localhost:3001"],
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+// // Allow preflight requests
+// app.options("*", cors({
+//   origin: "http://localhost:3000",
+//   credentials: true,
+// }));
 app.use(express.json());
+
 
 app.post("/signup", async (req: Request, res: Response): Promise<any> => {
   const parsedData = createUserSchema.safeParse(req.body);
@@ -134,5 +149,5 @@ app.get("/shapes/:roomId", async (req: Request, res: Response): Promise<any> => 
 
 
 app.listen(8000, () => {
-  console.log("server started ob port 8000");
+  console.log("server started on port 8000");
 });
