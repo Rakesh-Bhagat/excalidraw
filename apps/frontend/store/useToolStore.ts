@@ -1,10 +1,11 @@
+import { ShapeType } from "@/types/shape";
 import { create } from "zustand";
 
-type Tool = "rectangle" | "ellipse";
+
 
 interface ToolState {
-  currentTool: Tool;
-  setCurrentTool: (tool: Tool) => void;
+  currentTool: ShapeType;
+  setCurrentTool: (tool: ShapeType) => void;
 }
 
 export const useToolStore = create<ToolState>((set) => ({

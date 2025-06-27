@@ -1,11 +1,11 @@
 import { Drawable } from "roughjs/bin/core";
 
-type Point = {
+export type Point = {
   x: number;
   y: number;
 };
 
-export type ShapeType = "rectangle" | "ellipse";
+export type ShapeType = "rectangle" | "ellipse" | 'drag';
 
 export type Shape = {
   
