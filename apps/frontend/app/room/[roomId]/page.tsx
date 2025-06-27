@@ -4,18 +4,29 @@ import SessionButton from "@/components/SessionButton";
 import ToolBox from "@/components/ToolBox";
 import { wsClient } from "@/hooks/useWSClient";
 import { useSessionStore } from "@/store/useSessionstore";
-import { useParams } from "next/navigation";
-import { useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export const CanvasBoard = () => {
+  const router = useRouter();
   const params = useParams();
   const roomId = params.roomId as string;
 
   const isSessionStarted = useSessionStore((state) => state.isSessionStarted);
   const setSessionStarted = useSessionStore((state) => state.setSessionStarted);
   console.log(roomId)
+  const [authCheck, setAuthCheck] = useState(false)
+
+  useEffect(()=>{
+    const token = localStorage.getItem('token')
+    if (!token) {
+      router.push('/signin')
+    }else{
+      setAuthCheck(true)
+    }
+  }, [router])
    useEffect(() => {
-    if (!roomId || isSessionStarted) return;
+    if (!authCheck || !roomId || isSessionStarted) return;
 
     const token = localStorage.getItem("token") || "";
 
@@ -32,7 +43,8 @@ export const CanvasBoard = () => {
         console.warn("WebSocket disconnected");
       },
     });
-  }, [roomId, isSessionStarted, setSessionStarted]);
+  }, [roomId, isSessionStarted, setSessionStarted, authCheck]);
+  if(!authCheck) return null;
   return (
     <div className=" flex relative justify-center">
       <div className=" flex absolute z-10 top-7">

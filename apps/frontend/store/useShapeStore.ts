@@ -1,19 +1,9 @@
+import { Shape } from "@/types/shape";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-type Point = {
-  x: number;
-  y: number;
-};
 
-export type Shape = {
-  
-  type: "rectangle" | "ellipse";
-  start: Point;
-  end: Point;
-  width: number;
-  height: number;
-};
+
 
 type ShapeStore = {
   roomShapes: Record<string, Shape[]>;
