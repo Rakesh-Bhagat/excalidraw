@@ -1,6 +1,6 @@
 import { Shape } from "@/types/shape";
 import { clearCanvas, drawShape, generateDrawable } from "@/utils/draw";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import rough from "roughjs/bin/rough";
 import { RoughCanvas} from 'roughjs/bin/canvas'
 
@@ -15,10 +15,24 @@ const useDrawShape = (
   const roughCanvasRef = useRef<RoughCanvas |null>(null);
   const generatorRef = useRef<ReturnType<typeof rough.generator> | null>(null)
 
-  if(canvas && !roughCanvasRef.current){
-    roughCanvasRef.current = rough.canvas(canvas)
-    generatorRef.current = rough.generator()
-  }
+  useEffect(() => {
+    if (canvas && !roughCanvasRef.current) {
+      roughCanvasRef.current = rough.canvas(canvas);
+      generatorRef.current = rough.generator();
+    }
+  }, [canvas]);
+
+  useEffect(() => {
+    if (!canvas || !roughCanvasRef.current) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    clearCanvas(ctx, canvas.width, canvas.height);
+
+    shapes.forEach((shape) => {
+      drawShape(roughCanvasRef.current!, shape);
+    });
+  }, [shapes, canvas]);
 
   const onMouseDown = (e: MouseEvent) => {
     isDrawing.current = true;
