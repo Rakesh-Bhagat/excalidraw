@@ -16,8 +16,7 @@ const Canvas = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const currentTool = useToolStore((state) => state.currentTool);
-  const { getShapes, addShape } = useShapeStore();
-  const shapes = getShapes(roomId);
+  const {  addShape } = useShapeStore();
   const isSessionStarted = useSessionStore((state) => state.isSessionStarted);
   
   const size = useCanvasResize();
@@ -31,7 +30,7 @@ const Canvas = () => {
 
   const { onMouseDown, onMouseUp, onMouseMove} = useDrawShape(
     canvasRef.current,
-    shapes,
+    useShapeStore.getState().getShapes(roomId),
     currentTool,
     handleShapeDrawn
   );

@@ -1,20 +1,39 @@
 import { Shape } from "@/types/shape";
+import { RoughCanvas } from "roughjs/bin/canvas";
+import { RoughGenerator } from "roughjs/bin/generator";
 
-export const drawShape = (ctx: CanvasRenderingContext2D, shape: Shape) => {
-   ctx.strokeStyle = "#d3d3d3";
+const OPTIONS = {
+  stroke: "#d3d3d3",
+  roughness: 1,
+};
+export const drawShape = (
+  roughCanvas: RoughCanvas,
+  shape: Shape
+) => {
+  if (shape.drawable) {
+    roughCanvas.draw(shape.drawable);
+  }
+};
+export const generateDrawable = (generator: RoughGenerator, shape: Shape) => {
+  const { type, start, width, height } = shape;
 
-  if (shape.type === "rectangle") {
-   
-    ctx.strokeRect(shape.start.x, shape.start.y, shape.width, shape.height);
-  } else if (shape.type === "ellipse") {
-    const centerX = shape.start.x + shape.width / 2;
-    const centerY = shape.start.y + shape.height / 2;
-    const radiusX = Math.abs(shape.width) / 2;
-    const radiusY = Math.abs(shape.height) / 2;
+  switch (type) {
+    case "rectangle":
+      return generator.rectangle(start.x, start.y, width, height, OPTIONS);
 
-    ctx.beginPath();
-    ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, 2 * Math.PI);
-    ctx.stroke();
+    case "ellipse":
+      const clientX = start.x + width / 2;
+      const clientY = start.y + height / 2;
+      return generator.ellipse(
+        clientX,
+        clientY,
+        Math.abs(width),
+        Math.abs(height),
+        OPTIONS
+      );
+
+    default:
+      return null;
   }
 };
 

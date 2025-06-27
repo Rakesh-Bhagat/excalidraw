@@ -1,4 +1,5 @@
-import { Shape, useShapeStore } from "@/store/useShapeStore";
+import {  useShapeStore } from "@/store/useShapeStore";
+import { Shape } from "@/types/shape";
 
 const wsRef: { current: WebSocket | null } = { current: null };
 
