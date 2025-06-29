@@ -5,11 +5,12 @@ export type Point = {
   y: number;
 };
 
-export type ShapeType = "rectangle" | "ellipse" | 'drag';
+export type ShapeType = "rectangle" | "ellipse" | 'drag' | 'select';
 
 export type Shape = {
   
   type: ShapeType;
+  id: string
   start: Point;
   end: Point;
   width: number;

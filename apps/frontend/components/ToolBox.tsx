@@ -1,5 +1,5 @@
 import { useToolStore } from "@/store/useToolStore";
-import { Circle, Hand, Square } from "lucide-react";
+import { Circle, Hand, MousePointer, Square } from "lucide-react";
 
 const ToolBox = () => {
   const currentTool = useToolStore((state) => state.currentTool);
@@ -14,7 +14,17 @@ const ToolBox = () => {
             }}
             className={` cursor-pointer p-2 rounded-lg  ${currentTool == "drag" ? "bg-[hsl(var(--icon-selected))] " : ""}`}
           >
-            <Hand  className={`w-5 h-5`} />
+            <Hand  className={`w-5 h-5 scale-y-[1.2]`} />
+          </button>
+        </div>
+        <div className="flex rounded-lg hover:bg-[hsl(var(--icon-hover))] w-full ">
+          <button
+            onClick={() => {
+              setCurrentTool("select");
+            }}
+            className={` cursor-pointer p-2 rounded-lg  ${currentTool == "select" ? "bg-[hsl(var(--icon-selected))] " : ""}`}
+          >
+            <MousePointer  className={`w-5 h-5 scale-y-[1.2]`} />
           </button>
         </div>
         <div className="flex rounded-lg hover:bg-[hsl(var(--icon-hover))] w-full">

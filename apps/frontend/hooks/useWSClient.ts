@@ -31,7 +31,14 @@ const connect = (
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === "chat") {
-        useShapeStore.getState().addShape(data.roomId, data.message);
+        const { roomId, message: shape} = data
+        const {getShapes, updateShape, addShape} = useShapeStore.getState()
+        const existing = getShapes(roomId).find((s) => s.id === shape.id);
+        if(existing){
+          updateShape(roomId, shape)
+        }else{
+          addShape(roomId, shape)
+        }
       }
     };
 

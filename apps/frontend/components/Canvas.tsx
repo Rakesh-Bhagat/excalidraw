@@ -18,6 +18,7 @@ const Canvas = () => {
 
   const currentTool = useToolStore((state) => state.currentTool);
   const { addShape, offset, setOffset, zoom, setZoom } = useShapeStore();
+  const shapes = useShapeStore().roomShapes[roomId] || [];
   const isSessionStarted = useSessionStore((state) => state.isSessionStarted);
 
   const size = useCanvasResize();
@@ -34,11 +35,13 @@ const Canvas = () => {
 
   const { onMouseDown, onMouseUp, onMouseMove } = useDrawShape(
     canvasRef.current,
-    useShapeStore.getState().getShapes(roomId),
+    shapes,
     currentTool,
     handleShapeDrawn,
     offset,
-    zoom
+    zoom,
+    roomId,
+    isSessionStarted,
   );
 
   const handleWheel = useCallback(
@@ -51,8 +54,9 @@ const Canvas = () => {
       const mouseX = (e.clientX - rect.left - offset.x) / zoom;
       const mouseY = (e.clientY - rect.top - offset.y) / zoom;
 
+      
       const delta = -e.deltaY * 0.001;
-      const newZoom = Math.min(Math.max(zoom + delta, 0.1), 5);
+      const newZoom = Math.min(Math.max(zoom *(1 + delta), 0.001), 50);
       const zoomRatio = newZoom / zoom;
 
       const newOffset = {

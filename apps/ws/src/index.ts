@@ -62,7 +62,10 @@ wss.on("connection", (ws, request) => {
   ws.on("message", async (data) => {
     let parsedData;
     try {
-      parsedData = typeof data === "string" ? JSON.parse(data) : JSON.parse(data.toString());
+      parsedData =
+        typeof data === "string"
+          ? JSON.parse(data)
+          : JSON.parse(data.toString());
     } catch (err) {
       console.error("Invalid JSON received:", data);
       return;
@@ -87,11 +90,13 @@ wss.on("connection", (ws, request) => {
       existingShapes.forEach((shape) => {
         try {
           const parsedShape = JSON.parse(shape.message); // parse from DB string
-          ws.send(JSON.stringify({
-            type: "chat",
-            roomId,
-            message: parsedShape,
-          }));
+          ws.send(
+            JSON.stringify({
+              type: "chat",
+              roomId,
+              message: parsedShape,
+            })
+          );
         } catch (err) {
           console.error("Failed to parse stored shape:", shape.message);
         }
@@ -100,7 +105,9 @@ wss.on("connection", (ws, request) => {
 
     // Leave Room
     if (parsedData.type === "leave-room") {
-      const room = await prisma.room.findUnique({ where: { name: parsedData.name } });
+      const room = await prisma.room.findUnique({
+        where: { name: parsedData.name },
+      });
 
       if (!room) {
         console.error("No room exists");
@@ -113,37 +120,59 @@ wss.on("connection", (ws, request) => {
     // Chat (i.e., Shape Message)
     if (parsedData.type === "chat") {
       const { roomId, message } = parsedData;
+      const shapeId = message.id;
+      console.log(message)
 
       try {
-        await prisma.shape.create({
-          data: {
+        const existing = await prisma.shape.findFirst({
+          where: {
             roomId,
-            message: JSON.stringify(message), // store as string in DB
-            userId,
+            shapeId
           },
         });
+        if (existing) {
+          await prisma.shape.update({
+            where: { id: existing.id },
+            data: { message: JSON.stringify(message) },
+          });
+        } else {
+          await prisma.shape.create({
+            data: {
+              roomId,
+              shapeId,
+              userId,
+              message: JSON.stringify(message),
+            },
+          });
+        }
       } catch (error) {
         console.error("Failed to save shape:", error);
       }
 
       users.forEach((user) => {
-        if (user.rooms.includes(roomId) && user.ws.readyState === WebSocket.OPEN && user.ws !== ws) {
-          user.ws.send(JSON.stringify({
-            type: "chat",
-            roomId,
-            message,
-          }));
+        if (
+          user.rooms.includes(roomId) &&
+          user.ws.readyState === WebSocket.OPEN &&
+          user.ws !== ws
+        ) {
+          user.ws.send(
+            JSON.stringify({
+              type: "chat",
+              roomId,
+              message,
+            })
+          );
         }
       });
     }
   });
 
   ws.on("close", () => {
-  const user = users.find((u) => u.ws === ws);
-  if (user) {
-    console.log(`User disconnected: ${user.userId}`);
-  }
-  // Then remove by filter
-  users = users.filter((u) => u.ws !== ws);
-});
+    const user = users.find((u) => u.ws === ws);
+    if (user) {
+      console.log(`User disconnected: ${user.userId}`);
+    }
+    // Then remove by filter
+    users = users.filter((u) => u.ws !== ws);
+  });
 });

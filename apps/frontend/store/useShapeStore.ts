@@ -15,6 +15,9 @@ type ShapeStore = {
   setOffset: (offset: {x: number, y: number}) => void;
   zoom: number;
   setZoom: (zoom: number) => void;
+  selectedShapeId: string | null;
+  setSelectedShapeId: (id: string | null) => void;
+  updateShape: (roomId: string, shape: Shape) => void;
 };
 
 export const useShapeStore = create<ShapeStore>()(
@@ -23,6 +26,7 @@ export const useShapeStore = create<ShapeStore>()(
       roomShapes: {},
       offset: {x: 0, y: 0},
       zoom: 1,
+      selectedShapeId: null,
       addShape: (roomId, shape) =>
         set((state) => ({
           roomShapes: {
@@ -45,7 +49,14 @@ export const useShapeStore = create<ShapeStore>()(
         }),
       getShapes: (roomId) => get().roomShapes[roomId] || [],
       setOffset: (offset) => set(() => ({offset})),
-      setZoom: (zoom) => set(()=>({zoom}))
+      setZoom: (zoom) => set(()=>({zoom})),
+      setSelectedShapeId: (id) => set(() => ({selectedShapeId: id})),
+      updateShape: (roomId, updateShape) => set((state) => ({
+        roomShapes: {
+          ...state.roomShapes,
+          [roomId]: state.roomShapes[roomId].map((s) => s.id === updateShape.id ? updateShape: s)
+        }
+      }))
     }),
     {
       name: "shapes-store",
