@@ -41,6 +41,32 @@ export const drawShape = (
       }
     );
     roughCanvas.draw(selectionBox);
+    const handleSize = 10 /zoom;
+    const halfhandle = handleSize /2;
+
+    const corners = [
+      { x: normX, y: normY }, 
+    { x: normX + normWidth, y: normY }, 
+    { x: normX, y: normY + normHeight }, 
+    { x: normX + normWidth, y: normY + normHeight },
+    ]
+
+    corners.forEach(({x, y}) => {
+      const handle = roughCanvas.generator.rectangle(
+        x - halfhandle,
+        y - halfhandle,
+        handleSize,
+        handleSize, {
+          stroke: 'blue',
+          strokeWidth: 1 /zoom,
+          roughness: 0.2,
+          fill: 'blue',
+          fillStyle: 'solid'
+        }
+      );
+      roughCanvas.draw(handle)
+    })
+    
   }
 };
 export const generateDrawable = (

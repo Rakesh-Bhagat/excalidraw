@@ -19,11 +19,12 @@ const Canvas = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const currentTool = useToolStore((state) => state.currentTool);
-  const { addShape, offset, setOffset, zoom, setZoom } = useShapeStore();
+  const { addShape, offset, setOffset, zoom, setZoom, setSelectedShapeId } = useShapeStore();
   const shapes = useShapeStore().roomShapes[roomId] || [];
   const isSessionStarted = useSessionStore((state) => state.isSessionStarted);
   
-    const { canvasBg  } = useStyleStore();
+  const { canvasBg  } = useStyleStore();
+  const { setCurrentTool} = useToolStore()
 
   const size = useCanvasResize();
   const isDragging = useRef(false);
@@ -31,7 +32,10 @@ const Canvas = () => {
   const lastPos = useRef<Point>({ x: 0, y: 0 });
 
   const handleShapeDrawn = (shape: Shape) => {
+    
     addShape(roomId, shape);
+    setSelectedShapeId(shape.id)
+    setCurrentTool('select')
     if (isSessionStarted) {
       wsClient.sendShape(roomId, shape);
     }
