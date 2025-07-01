@@ -17,7 +17,7 @@ export type ShapeStyle ={
   strokeStyle?: 'solid' | 'dashed' | 'dotted'
 }
 
-export type ShapeType = "rectangle" | "ellipse" | 'drag' | 'select';
+export type ShapeType = "rectangle" | "ellipse" | 'drag' | 'select' | 'diamond' | 'line' | 'arrow' | 'draw';
 export type ResizeHandle = "top-left" | "top-right" | "bottom-left" | "bottom-right";
 
 export type Shape = {
@@ -29,5 +29,6 @@ export type Shape = {
   width: number;
   height: number;
   drawable?: Drawable;
+  points?: Point[]
   style?: ShapeStyle;
 };

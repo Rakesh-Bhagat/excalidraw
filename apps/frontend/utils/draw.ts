@@ -1,6 +1,7 @@
 import { Shape } from "@/types/shape";
 import { RoughCanvas } from "roughjs/bin/canvas";
 import { RoughGenerator } from "roughjs/bin/generator";
+import { Point } from "roughjs/bin/geometry";
 
 // const OPTIONS = {
 //   stroke: "#ffffff",
@@ -19,7 +20,7 @@ export const drawShape = (
     roughCanvas.draw(shape.drawable);
   }
   if (isSelected) {
-    const offset = 100;
+    const offset = 5;
     const normX = shape.width < 0 ? shape.start.x + shape.width : shape.start.x;
     const normY =
       shape.height < 0 ? shape.start.y + shape.height : shape.start.y;
@@ -41,32 +42,32 @@ export const drawShape = (
       }
     );
     roughCanvas.draw(selectionBox);
-    const handleSize = 10 /zoom;
-    const halfhandle = handleSize /2;
+    const handleSize = 10 / zoom;
+    const halfhandle = handleSize / 2;
 
     const corners = [
-      { x: normX, y: normY }, 
-    { x: normX + normWidth, y: normY }, 
-    { x: normX, y: normY + normHeight }, 
-    { x: normX + normWidth, y: normY + normHeight },
-    ]
+      { x: normX, y: normY },
+      { x: normX + normWidth, y: normY },
+      { x: normX, y: normY + normHeight },
+      { x: normX + normWidth, y: normY + normHeight },
+    ];
 
-    corners.forEach(({x, y}) => {
+    corners.forEach(({ x, y }) => {
       const handle = roughCanvas.generator.rectangle(
         x - halfhandle,
         y - halfhandle,
         handleSize,
-        handleSize, {
-          stroke: 'blue',
-          strokeWidth: 1 /zoom,
+        handleSize,
+        {
+          stroke: "blue",
+          strokeWidth: 1 / zoom,
           roughness: 0.2,
-          fill: 'blue',
-          fillStyle: 'solid'
+          fill: "blue",
+          fillStyle: "solid",
         }
       );
-      roughCanvas.draw(handle)
-    })
-    
+      roughCanvas.draw(handle);
+    });
   }
 };
 export const generateDrawable = (
@@ -74,20 +75,25 @@ export const generateDrawable = (
   shape: Shape,
   zoom: number
 ) => {
-  const { type, start, width, height, style = {} } = shape;
+  const { type, start, end, width, height, style = {}, points } = shape;
   const scaledOptions = {
     stroke: style.stroke ?? "#00ffff",
     roughness: style.roughness ?? 1,
     strokeWidth: (style.strokeWidth ?? 1) / zoom,
     fill: style.fill,
     fillStyle: style.fillStyle,
-    dashGap: style.strokeStyle === 'dashed' ? 4 : style.strokeStyle === 'dotted' ? 1.5 : undefined,
-    dashOffset: style.strokeStyle === 'dotted' ? 2 : undefined
+    dashGap:
+      style.strokeStyle === "dashed"
+        ? 4
+        : style.strokeStyle === "dotted"
+          ? 1.5
+          : undefined,
+    dashOffset: style.strokeStyle === "dotted" ? 2 : undefined,
   };
   if (style.fill) {
-  scaledOptions.fill = style.fill;
-  scaledOptions.fillStyle = style.fillStyle ?? "hachure";
-}
+    scaledOptions.fill = style.fill;
+    scaledOptions.fillStyle = style.fillStyle ?? "hachure";
+  }
 
   switch (type) {
     case "rectangle":
@@ -109,7 +115,51 @@ export const generateDrawable = (
         Math.abs(height),
         scaledOptions
       );
+    case "diamond":
+      const midX = start.x + width / 2;
+      const midY = start.y + height / 2;
+      const diamondPoints: Point[] = [
+        [midX, start.y],
+        [start.x + width, midY],
+        [midX, start.y + height],
+        [start.x, midY],
+      ];
+      return generator.polygon(diamondPoints, scaledOptions);
 
+    case "line":
+      return generator.line(start.x, start.y, end.x, end.y, scaledOptions);
+    case 'arrow':
+      const baseLine = generator.line(start.x, start.y, shape.end.x, shape.end.y, scaledOptions);
+
+  // Arrowhead calculations
+  const arrowLength = 15 / zoom;
+  const angle = Math.atan2(shape.end.y - start.y, shape.end.x - start.x);
+  const arrowAngle = Math.PI / 7;
+
+  const arrowPoint1: [number, number] = [
+    shape.end.x - arrowLength * Math.cos(angle - arrowAngle),
+    shape.end.y - arrowLength * Math.sin(angle - arrowAngle),
+  ];
+
+  const arrowPoint2: [number, number] = [
+    shape.end.x - arrowLength * Math.cos(angle + arrowAngle),
+    shape.end.y - arrowLength * Math.sin(angle + arrowAngle),
+  ];
+
+  const arrowHead = generator.polygon(
+    [arrowPoint1, [shape.end.x, shape.end.y], arrowPoint2],
+    scaledOptions
+  );
+
+  return {
+    shape: 'arrow',
+    sets: [...baseLine.sets, ...arrowHead.sets],
+    options: baseLine.options,
+  };
+  case 'draw':
+    if(!points || points.length < 2)return null
+    const roughPoints = points.map(p => [p.x, p.y]) as [number, number][];
+    return generator.curve(roughPoints, scaledOptions)
     default:
       return null;
   }

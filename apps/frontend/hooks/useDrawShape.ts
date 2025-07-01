@@ -19,8 +19,9 @@ const useDrawShape = (
   isSessionStarted: boolean
 ) => {
   const isDrawing = useRef(false);
+  const currentPoints = useRef<Point[]>([]);
   const startPoint = useRef<{ x: number; y: number } | null>(null);
-  const resizeHandle = useRef< ResizeHandle |null>(null);
+  const resizeHandle = useRef<ResizeHandle | null>(null);
 
   const roughCanvasRef = useRef<RoughCanvas | null>(null);
   const generatorRef = useRef<ReturnType<typeof rough.generator> | null>(null);
@@ -60,18 +61,20 @@ const useDrawShape = (
 
     const selectedShape = shapes.find((s) => s.id === selectedShapeId);
     if (!selectedShape) return;
+    const targetStyle =
+    selectedShape.type === "draw" ? { ...style, roughness: 0 } : style;
 
-    if (isEqual(selectedShape.style, style)) return;
+    if (isEqual(selectedShape.style, targetStyle)) return;
 
     const updatedShape: Shape = {
       ...selectedShape,
-      style,
+      style: targetStyle,
       drawable:
         generateDrawable(
           generatorRef.current,
           {
             ...selectedShape,
-            style,
+            style: targetStyle,
           },
           zoom
         ) ?? undefined,
@@ -85,7 +88,6 @@ const useDrawShape = (
     selectedShapeId,
     isSessionStarted,
     zoom,
-    shapes,
     roomId,
     updateShape,
   ]);
@@ -111,6 +113,13 @@ const useDrawShape = (
   const onMouseDown = (e: MouseEvent) => {
     if (currentTool === "drag") return;
     const mousePos = getMousePos(e);
+    if (currentTool === "draw") {
+      isDrawing.current = true;
+      const pos = getMousePos(e);
+      startPoint.current = pos;
+      currentPoints.current = [pos];
+      return;
+    }
 
     if (currentTool === "select") {
       if (selectedShapeId) {
@@ -190,6 +199,58 @@ const useDrawShape = (
       resizeHandle.current = null;
       return;
     }
+
+    if (currentTool === "draw" && currentPoints.current.length > 1) {
+      const points = [...currentPoints.current];
+      const xs = points.map((p) => p.x);
+      const ys = points.map((p) => p.y);
+
+      const minX = Math.min(...xs);
+      const minY = Math.min(...ys);
+      const maxX = Math.max(...xs);
+      const maxY = Math.max(...ys);
+
+      const start = { x: minX, y: minY };
+      const end = { x: maxX, y: maxY };
+      const width = maxX - minX;
+      const height = maxY - minY;
+      const shape: Shape = {
+        id: crypto.randomUUID(),
+        type: "draw",
+        start,
+        end,
+        width,
+        height,
+        points,
+        style: {
+          ...style,
+          roughness: 0,
+        },
+        drawable:
+          generateDrawable(
+            generatorRef.current,
+            {
+              id: "temp",
+              type: "draw",
+              start,
+              end,
+              width: 0,
+              height: 0,
+              style: {
+                ...style,
+                roughness: 0,
+              },
+              points,
+            },
+            zoom
+          ) ?? undefined,
+      };
+      onShapeDrawn(shape);
+      isDrawing.current = false;
+      currentPoints.current = [];
+      startPoint.current = null;
+      return;
+    }
     const end = getMousePos(e);
     const start = startPoint.current;
     const width = end.x - start.x;
@@ -227,7 +288,6 @@ const useDrawShape = (
 
   const onMouseMove = (e: MouseEvent) => {
     const currentPos = getMousePos(e);
-
 
     if (
       !isDrawing.current ||
@@ -277,12 +337,23 @@ const useDrawShape = (
       }
       const newWidth = newEnd.x - newStart.x;
       const newHeight = newEnd.y - newStart.y;
+      let updatedPoints = shape.points;
+      if (shape.type === "draw" && shape.points) {
+        const scaleX = newWidth / shape.width;
+        const scaleY = newHeight / shape.height;
+
+        updatedPoints = shape.points.map((p) => ({
+          x: newStart.x + (p.x - shape.start.x) * scaleX,
+          y: newStart.y + (p.y - shape.start.y) * scaleY,
+        }));
+      }
       const updatedShape: Shape = {
         ...shape,
         start: newStart,
         end: newEnd,
         width: newWidth,
         height: newHeight,
+        points: updatedPoints,
         drawable:
           generateDrawable(
             generator,
@@ -292,6 +363,7 @@ const useDrawShape = (
               end: newEnd,
               width: newWidth,
               height: newHeight,
+              points: updatedPoints,
             },
             zoom
           ) ?? undefined,
@@ -300,6 +372,48 @@ const useDrawShape = (
       if (isSessionStarted) {
         wsClient.sendShape(roomId, updatedShape);
       }
+      return;
+    }
+
+    if (currentTool === "draw" && isDrawing.current) {
+      const pos = getMousePos(e);
+      currentPoints.current.push(pos);
+      const start = currentPoints.current[0];
+      const end = pos;
+      const width = end.x - start.x;
+      const height = end.y - start.y;
+      const previewShape: Shape = {
+        id: "temp-preview",
+        type: "draw",
+        start,
+        end,
+        width,
+        height,
+        points: [...currentPoints.current],
+        style: {
+          ...style,
+          roughness: 0,
+        },
+        drawable:
+          generateDrawable(
+            generator,
+            {
+              id: "temp-preview",
+              type: "draw",
+              start: currentPoints.current[0],
+              end: pos,
+              width: 0,
+              height: 0,
+              points: [...currentPoints.current],
+              style: {
+                ...style,
+                roughness: 0,
+              },
+            },
+            zoom
+          ) ?? undefined,
+      };
+      drawShape(roughCanvas, previewShape, false, zoom);
       return;
     }
 
@@ -318,7 +432,13 @@ const useDrawShape = (
         x: selectedShape.end.x + dx,
         y: selectedShape.end.y + dy,
       };
-
+      let updatedPoints = selectedShape.points;
+      if (selectedShape.type === "draw" && selectedShape.points) {
+        updatedPoints = selectedShape.points.map((p) => ({
+          x: p.x + dx,
+          y: p.y + dy,
+        }));
+      }
       const updatedShape: Shape = {
         ...selectedShape,
         start: newStart,
@@ -326,6 +446,7 @@ const useDrawShape = (
         style: selectedShape.style,
         width: newEnd.x - newStart.x,
         height: newEnd.y - newStart.y,
+        points: updatedPoints,
         drawable:
           generateDrawable(
             generator,
@@ -334,6 +455,7 @@ const useDrawShape = (
               start: newStart,
               end: newEnd,
               style: selectedShape.style,
+              points: updatedPoints,
             },
             zoom
           ) ?? undefined,

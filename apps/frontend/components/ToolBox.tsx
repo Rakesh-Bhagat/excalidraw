@@ -1,5 +1,5 @@
 import { useToolStore } from "@/store/useToolStore";
-import { Circle, Hand, MousePointer, Square } from "lucide-react";
+import { Circle, Diamond, Hand, Minus, MousePointer, MoveRight, Pencil, Square } from "lucide-react";
 
 const ToolBox = () => {
   const currentTool = useToolStore((state) => state.currentTool);
@@ -37,6 +37,16 @@ const ToolBox = () => {
             <Square className={`w-5 h-5 ${currentTool == 'rectangle'? "fill-current text-[hsl(var(--tool-fill))]": ""}`} />
           </button>
         </div>
+         <div className="flex rounded-lg hover:bg-[hsl(var(--icon-hover))] w-full ">
+          <button
+            onClick={() => {
+              setCurrentTool("diamond");
+            }}
+            className={`cursor-pointer p-2 rounded-lg  ${currentTool == "diamond" ? "bg-[hsl(var(--icon-selected))] " : ""}`}
+          >
+            <Diamond className={`w-5 h-5 ${currentTool == 'diamond'? "fill-current text-[hsl(var(--tool-fill))]": ""}`} />
+          </button>
+        </div>
         <div className="flex rounded-lg hover:bg-[hsl(var(--icon-hover))] w-full ">
           <button
             onClick={() => {
@@ -47,9 +57,41 @@ const ToolBox = () => {
             <Circle className={`w-5 h-5 ${currentTool == 'ellipse'? "fill-current text-[hsl(var(--tool-fill))]": ""}`} />
           </button>
         </div>
+        <div className="flex rounded-lg hover:bg-[hsl(var(--icon-hover))] w-full ">
+          <button
+            onClick={() => {
+              setCurrentTool("line");
+            }}
+            className={`cursor-pointer p-2 rounded-lg ${currentTool == "line" ? "bg-[hsl(var(--icon-selected))] " : ""}`}
+          >
+            <Minus  className={`w-5 h-5 `} />
+          </button>
+        </div>
+        <div className="flex rounded-lg hover:bg-[hsl(var(--icon-hover))] w-full">
+          <button
+            onClick={() => {
+              setCurrentTool("arrow");
+            }}
+            className={`cursor-pointer p-2 rounded-lg ${currentTool == "arrow" ? "bg-[hsl(var(--icon-selected))] " : ""}`}
+          >
+            <MoveRight   className={`w-5 h-5 `} />
+          </button>
+        </div>
+        </div>
+        <div className="flex rounded-lg hover:bg-[hsl(var(--icon-hover))] w-full">
+          <button
+            onClick={() => {
+              setCurrentTool("draw");
+            }}
+            className={`cursor-pointer p-2 rounded-lg ${currentTool == "draw" ? "bg-[hsl(var(--icon-selected))] " : ""}`}
+          >
+            <Pencil className={`w-5 h-5`} />
+          </button>
+        </div>
+       
         
       </div>
-    </div>
+    
   );
 };
 

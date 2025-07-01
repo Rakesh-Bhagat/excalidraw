@@ -62,6 +62,8 @@ const Canvas = () => {
   const handleWheel = useCallback(
     (e: WheelEvent) => {
       e.preventDefault();
+      console.log(zoom)
+      console.log(offset)
       const canvas = canvasRef.current;
       if (!canvas) return;
 
@@ -69,7 +71,7 @@ const Canvas = () => {
       const mouseX = (e.clientX - rect.left - offset.x) / zoom;
       const mouseY = (e.clientY - rect.top - offset.y) / zoom;
 
-      const delta = -e.deltaY * 0.001;
+      const delta = -e.deltaY * 0.0001;
       const newZoom = Math.min(Math.max(zoom * (1 + delta), 0.001), 50);
       const zoomRatio = newZoom / zoom;
 
@@ -106,6 +108,10 @@ const Canvas = () => {
   });
 
   useEffect(() => {
+  setZoom(1);
+  setOffset({ x: 0, y: 0 });
+}, [roomId, setZoom, setOffset]);
+  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -113,6 +119,7 @@ const Canvas = () => {
 
     const downHandler = (e: MouseEvent) => {
       if (currentTool === "drag") {
+        setSelectedShapeId(null)
         setIsDragging(true)
         lastPos.current = { x: e.clientX, y: e.clientY };
       } else {
@@ -149,7 +156,7 @@ const Canvas = () => {
       canvas.removeEventListener("mouseup", upHandler);
       canvas.removeEventListener("mousemove", moveHandler);
     };
-  }, [onMouseDown, onMouseMove, onMouseUp, currentTool, offset, setOffset, isDragging]);
+  }, [onMouseDown, onMouseMove, onMouseUp, currentTool, offset, setOffset, isDragging, setSelectedShapeId]);
 
   return (
     <div ref={containerRef} className="w-full h-full overflow-hidden relative">
@@ -160,7 +167,7 @@ const Canvas = () => {
         style={{ backgroundColor: canvasBg }}
         
       />
-      {currentTool !== "drag" && selectedShapeId &&(
+      {currentTool !== "drag"  &&(
       <div className="absolute left-4  top-20">
         <StyleSidebar />
       </div>
