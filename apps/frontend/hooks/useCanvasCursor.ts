@@ -47,7 +47,9 @@ export const useCanvasCursor = ({
         canvas.style.cursor = isDragging ? "grabbing" : "grab";
         return;
       }
-
+      if(tool === 'select' && !selectedShapeId){
+        canvas.style.cursor = "default"
+      }
       if (tool === "select" && selectedShapeId) {
         const shape = shapes.find((s) => s.id === selectedShapeId);
         if (!shape) {

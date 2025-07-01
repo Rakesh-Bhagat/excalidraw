@@ -20,23 +20,29 @@ const Canvas = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const currentTool = useToolStore((state) => state.currentTool);
-  const { addShape, offset, setOffset, zoom, setZoom,selectedShapeId, setSelectedShapeId } = useShapeStore();
+  const {
+    addShape,
+    offset,
+    setOffset,
+    zoom,
+    setZoom,
+    selectedShapeId,
+    setSelectedShapeId,
+  } = useShapeStore();
   const shapes = useShapeStore().roomShapes[roomId] || [];
   const isSessionStarted = useSessionStore((state) => state.isSessionStarted);
-  
-  const { canvasBg  } = useStyleStore();
-  const { setCurrentTool} = useToolStore()
+
+  const { canvasBg } = useStyleStore();
+  const { setCurrentTool } = useToolStore();
 
   const size = useCanvasResize();
-  const isDragging = useRef(false);
-  const [isMouseDown, setIsMouseDown] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const lastPos = useRef<Point>({ x: 0, y: 0 });
 
   const handleShapeDrawn = (shape: Shape) => {
-    
     addShape(roomId, shape);
-    setSelectedShapeId(shape.id)
-    setCurrentTool('select')
+    setSelectedShapeId(shape.id);
+    setCurrentTool("select");
     if (isSessionStarted) {
       wsClient.sendShape(roomId, shape);
     }
@@ -96,7 +102,7 @@ const Canvas = () => {
     selectedShapeId,
     zoom,
     offset,
-    isDragging: isDragging.current,
+    isDragging,
   });
 
   useEffect(() => {
@@ -107,8 +113,7 @@ const Canvas = () => {
 
     const downHandler = (e: MouseEvent) => {
       if (currentTool === "drag") {
-        isDragging.current = true;
-        setIsMouseDown(true);
+        setIsDragging(true)
         lastPos.current = { x: e.clientX, y: e.clientY };
       } else {
         onMouseDown(e);
@@ -116,7 +121,7 @@ const Canvas = () => {
     };
 
     const moveHandler = (e: MouseEvent) => {
-      if (isDragging.current && currentTool === "drag") {
+      if (isDragging && currentTool === "drag") {
         const dx = e.clientX - lastPos.current.x;
         const dy = e.clientY - lastPos.current.y;
 
@@ -128,9 +133,8 @@ const Canvas = () => {
     };
 
     const upHandler = (e: MouseEvent) => {
-      if (isDragging.current && currentTool === "drag") {
-        isDragging.current = false;
-        setIsMouseDown(false);
+      if (isDragging && currentTool === "drag") {
+        setIsDragging(false)
       } else {
         onMouseUp(e);
       }
@@ -145,7 +149,7 @@ const Canvas = () => {
       canvas.removeEventListener("mouseup", upHandler);
       canvas.removeEventListener("mousemove", moveHandler);
     };
-  }, [onMouseDown, onMouseMove, onMouseUp, currentTool, offset, setOffset]);
+  }, [onMouseDown, onMouseMove, onMouseUp, currentTool, offset, setOffset, isDragging]);
 
   return (
     <div ref={containerRef} className="w-full h-full overflow-hidden relative">
@@ -153,12 +157,14 @@ const Canvas = () => {
         ref={canvasRef}
         width={size.width}
         height={size.height}
-        style={{backgroundColor: canvasBg}}
-        className={` ${currentTool === "drag" ? (isMouseDown ? "cursor-grabbing" : "cursor-grab" ) : currentTool === 'select' ? "cursor-move": "cursor-crosshair"}`}
+        style={{ backgroundColor: canvasBg }}
+        
       />
+      {currentTool !== "drag" && selectedShapeId &&(
       <div className="absolute left-4  top-20">
         <StyleSidebar />
       </div>
+      )}
     </div>
   );
 };
