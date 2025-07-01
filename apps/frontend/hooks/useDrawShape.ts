@@ -7,7 +7,6 @@ import { RoughCanvas } from "roughjs/bin/canvas";
 import { useShapeStore } from "@/store/useShapeStore";
 import { wsClient } from "./useWSClient";
 import { useStyleStore } from "@/store/useStyleStore";
-
 const useDrawShape = (
   canvas: HTMLCanvasElement | null,
   shapes: Shape[],
@@ -19,6 +18,8 @@ const useDrawShape = (
   isSessionStarted: boolean
 ) => {
   const isDrawing = useRef(false);
+  const erasedShapeIds = useRef<Set<string>>(new Set());
+  const fadedShapeIds = useRef<Set<string>>(new Set());
   const currentPoints = useRef<Point[]>([]);
   const startPoint = useRef<{ x: number; y: number } | null>(null);
   const resizeHandle = useRef<ResizeHandle | null>(null);
@@ -62,7 +63,7 @@ const useDrawShape = (
     const selectedShape = shapes.find((s) => s.id === selectedShapeId);
     if (!selectedShape) return;
     const targetStyle =
-    selectedShape.type === "draw" ? { ...style, roughness: 0 } : style;
+      selectedShape.type === "draw" ? { ...style, roughness: 0 } : style;
 
     if (isEqual(selectedShape.style, targetStyle)) return;
 
@@ -88,6 +89,7 @@ const useDrawShape = (
     selectedShapeId,
     isSessionStarted,
     zoom,
+    shapes,
     roomId,
     updateShape,
   ]);
@@ -113,6 +115,12 @@ const useDrawShape = (
   const onMouseDown = (e: MouseEvent) => {
     if (currentTool === "drag") return;
     const mousePos = getMousePos(e);
+    if (currentTool === "eraser") {
+      isDrawing.current = true;
+      startPoint.current = mousePos;
+      erasedShapeIds.current.clear();
+      return;
+    }
     if (currentTool === "draw") {
       isDrawing.current = true;
       const pos = getMousePos(e);
@@ -192,6 +200,26 @@ const useDrawShape = (
       currentTool === "drag"
     )
       return;
+
+    if (currentTool === "eraser" ) {
+      if(erasedShapeIds.current.size > 0){
+        const updated = shapes.filter((s) => erasedShapeIds.current.has(s.id))
+        for (const shape of updated){
+          const deletedShapes: Shape = {
+            ...shape, 
+            type: 'deleted'
+          };
+          updateShape(roomId, deletedShapes);
+          if(isSessionStarted){
+            wsClient.sendShape(roomId, deletedShapes)
+          }
+        }
+      }
+      erasedShapeIds.current.clear();
+      fadedShapeIds.current.clear()
+      isDrawing.current = false;
+      return;
+    }
 
     if (currentTool === "select") {
       isDrawing.current = false;
@@ -375,6 +403,40 @@ const useDrawShape = (
       return;
     }
 
+    if (currentTool === "eraser" && isDrawing.current) {
+      const mouse = getMousePos(e);
+      fadedShapeIds.current.clear()
+      shapes.forEach((shape) => {
+        if (shape.type === "deleted") return;
+        const normX =shape.width < 0 ? shape.start.x + shape.width : shape.start.x;
+        const normY =shape.height < 0 ? shape.start.y + shape.height : shape.start.y;
+        const normWidth = Math.abs(shape.width);
+        const normHeight = Math.abs(shape.height);
+
+        const isInside =
+      mouse.x >= normX &&
+      mouse.x <= normX + normWidth &&
+      mouse.y >= normY &&
+      mouse.y <= normY + normHeight;
+
+       if (isInside) {
+        fadedShapeIds.current.add(shape.id)
+        erasedShapeIds.current.add(shape.id)
+      }});
+      shapes.forEach((shape) => {
+        const isSelected = shape.id === selectedShapeId;
+        const isFaded = fadedShapeIds.current.has(shape.id)
+
+        const previewStyle = isFaded ? {...shape.style, stroke: "#c6c1c0", fill: undefined, roughness: 0} : shape.style
+
+        const previewShape = {
+          ...shape,
+          style: previewStyle
+        };
+        drawShape(roughCanvas, previewShape,isSelected, zoom);
+      })
+      return;
+    }
     if (currentTool === "draw" && isDrawing.current) {
       const pos = getMousePos(e);
       currentPoints.current.push(pos);

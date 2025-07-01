@@ -121,29 +121,38 @@ wss.on("connection", (ws, request) => {
     if (parsedData.type === "chat") {
       const { roomId, message } = parsedData;
       const shapeId = message.id;
-      console.log(message)
+      console.log(message);
 
       try {
-        const existing = await prisma.shape.findFirst({
-          where: {
-            roomId,
-            shapeId
-          },
-        });
-        if (existing) {
-          await prisma.shape.update({
-            where: { id: existing.id },
-            data: { message: JSON.stringify(message) },
-          });
-        } else {
-          await prisma.shape.create({
-            data: {
+        if (message.type === "deleted") {
+          await prisma.shape.deleteMany({
+            where: {
               roomId,
               shapeId,
-              userId,
-              message: JSON.stringify(message),
             },
           });
+        } else {
+          const existing = await prisma.shape.findFirst({
+            where: {
+              roomId,
+              shapeId,
+            },
+          });
+          if (existing) {
+            await prisma.shape.update({
+              where: { id: existing.id },
+              data: { message: JSON.stringify(message) },
+            });
+          } else {
+            await prisma.shape.create({
+              data: {
+                roomId,
+                shapeId,
+                userId,
+                message: JSON.stringify(message),
+              },
+            });
+          }
         }
       } catch (error) {
         console.error("Failed to save shape:", error);

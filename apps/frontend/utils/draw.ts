@@ -16,6 +16,7 @@ export const drawShape = (
   isSelected: boolean = false,
   zoom: number
 ) => {
+  if (shape.type === "deleted") return;
   if (shape.drawable) {
     roughCanvas.draw(shape.drawable);
   }

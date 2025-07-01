@@ -37,6 +37,11 @@ const connect = (
         const { roomId, message: shape } = data;
         const { getShapes, updateShape, addShape } = useShapeStore.getState();
         const existing = getShapes(roomId).find((s) => s.id === shape.id);
+        if (shape.type === "deleted") {
+          const newShapes = getShapes(roomId).filter((s) => s.id !== shape.id);
+          useShapeStore.getState().setShapes(roomId, newShapes);
+          return;
+        }
 
         const generator = rough.generator();
         shape.drawable = generateDrawable(

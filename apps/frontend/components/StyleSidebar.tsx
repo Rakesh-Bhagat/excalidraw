@@ -1,20 +1,14 @@
 "use client";
-import { useShapeStore } from "@/store/useShapeStore";
 import {  useStyleStore } from "@/store/useStyleStore";
 import { useToolStore } from "@/store/useToolStore";
 import { Square } from "lucide-react";
-import { useParams } from "next/navigation";
 
 const strokeColors = ["#d3d3d3", "#ff8383", "#56a2e8", "#3a994c", "#b76100"];
 const fillColors = [null, "#5b2c2c", "#043b0c", "#154163", "#362500"];
 
 export default function StyleSidebar() {
-  const params = useParams();
-  const roomId = params.roomId as string;
   const {currentTool} = useToolStore()
-  const {selectedShapeId, roomShapes} = useShapeStore()
   const {setCanvasBg, canvasBg, style, setStyle } = useStyleStore();
-  const selectedShape = roomShapes[roomId].find((shape) => shape.id === selectedShapeId)
 
   return (
     <div className="bg-[#232329] text-white p-5 w-auto rounded-md space-y-3">
@@ -312,7 +306,7 @@ export default function StyleSidebar() {
           </button>
         </div>
       </div>
-      {currentTool !== 'draw' && selectedShape?.type !== 'draw' &&(<div>
+      {currentTool !== 'draw'  &&(<div>
         <p className="text-xs mb-2">Sloppiness</p>
         <div className="flex gap-2">
           <button

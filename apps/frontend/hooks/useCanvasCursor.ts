@@ -47,8 +47,15 @@ export const useCanvasCursor = ({
         canvas.style.cursor = isDragging ? "grabbing" : "grab";
         return;
       }
-      if(tool === 'select' && !selectedShapeId){
-        canvas.style.cursor = "default"
+      if (tool === "draw") {
+        canvas.style.cursor =
+          "url('data:image/svg+xml;utf8," +
+          "<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2232%22 height=%2232%22 viewBox=%220 0 16 16%22>" +
+          "<path d=%22M1 15l4-1 9-9-3-3-9 9-1 4z%22 fill=%22white%22/></svg>') 0 32, auto";
+        return;
+      }
+      if (tool === "select" && !selectedShapeId) {
+        canvas.style.cursor = "default";
       }
       if (tool === "select" && selectedShapeId) {
         const shape = shapes.find((s) => s.id === selectedShapeId);
@@ -57,8 +64,10 @@ export const useCanvasCursor = ({
           return;
         }
 
-        const normX = shape.width < 0 ? shape.start.x + shape.width : shape.start.x;
-        const normY = shape.height < 0 ? shape.start.y + shape.height : shape.start.y;
+        const normX =
+          shape.width < 0 ? shape.start.x + shape.width : shape.start.x;
+        const normY =
+          shape.height < 0 ? shape.start.y + shape.height : shape.start.y;
         const normWidth = Math.abs(shape.width);
         const normHeight = Math.abs(shape.height);
         const handleSize = 10 / zoom;
