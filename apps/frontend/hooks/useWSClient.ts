@@ -1,5 +1,7 @@
-import {  useShapeStore } from "@/store/useShapeStore";
+import { useShapeStore } from "@/store/useShapeStore";
 import { Shape } from "@/types/shape";
+import rough from "roughjs/bin/rough";
+import { generateDrawable } from "@/utils/draw";
 
 const wsRef: { current: WebSocket | null } = { current: null };
 
@@ -30,14 +32,24 @@ const connect = (
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
+      console.log("shape received");
       if (data.type === "chat") {
-        const { roomId, message: shape} = data
-        const {getShapes, updateShape, addShape} = useShapeStore.getState()
+        const { roomId, message: shape } = data;
+        const { getShapes, updateShape, addShape } = useShapeStore.getState();
         const existing = getShapes(roomId).find((s) => s.id === shape.id);
-        if(existing){
-          updateShape(roomId, shape)
-        }else{
-          addShape(roomId, shape)
+
+        const generator = rough.generator();
+        shape.drawable = generateDrawable(
+          generator,
+          shape,
+          useShapeStore.getState().zoom ?? 1
+        );
+        if (existing) {
+          updateShape(roomId, shape);
+          console.log("updated shape");
+        } else {
+          addShape(roomId, shape);
+          console.log("updated shape");
         }
       }
     };
@@ -61,6 +73,7 @@ const sendShape = (roomId: string, shape: Shape) => {
         message: shape,
       })
     );
+    console.log("send");
   } else {
     console.warn("WebSocket not ready, shape not sent");
   }

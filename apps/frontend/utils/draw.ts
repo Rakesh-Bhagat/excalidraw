@@ -4,10 +4,10 @@ import { RoughGenerator } from "roughjs/bin/generator";
 
 // const OPTIONS = {
 //   stroke: "#ffffff",
-  
+
 //   roughness: 0.7,
 //   strokeWidth: 4 ,
-  
+
 // };
 export const drawShape = (
   roughCanvas: RoughCanvas,
@@ -18,20 +18,21 @@ export const drawShape = (
   if (shape.drawable) {
     roughCanvas.draw(shape.drawable);
   }
-  if(isSelected){
-     const offset = 2000; 
-     const normX = shape.width < 0 ? shape.start.x + shape.width : shape.start.x;
-    const normY = shape.height < 0 ? shape.start.y + shape.height : shape.start.y;
+  if (isSelected) {
+    const offset = 100;
+    const normX = shape.width < 0 ? shape.start.x + shape.width : shape.start.x;
+    const normY =
+      shape.height < 0 ? shape.start.y + shape.height : shape.start.y;
     const normWidth = Math.abs(shape.width);
     const normHeight = Math.abs(shape.height);
 
     const selectionBox = roughCanvas.generator.rectangle(
-       normX - offset,
+      normX - offset,
       normY - offset,
       normWidth + 2 * offset,
       normHeight + 2 * offset,
       {
-        stroke: 'blue',
+        stroke: "blue",
         strokeWidth: 0.5 / zoom,
         roughness: 0.5,
         bowing: 0,
@@ -39,20 +40,38 @@ export const drawShape = (
         fillStyle: undefined,
       }
     );
-    roughCanvas.draw(selectionBox)
+    roughCanvas.draw(selectionBox);
   }
 };
-export const generateDrawable = (generator: RoughGenerator, shape: Shape, zoom: number) => {
-  const { type, start, width, height } = shape;
+export const generateDrawable = (
+  generator: RoughGenerator,
+  shape: Shape,
+  zoom: number
+) => {
+  const { type, start, width, height, style = {} } = shape;
   const scaledOptions = {
-    stroke: "#d3d3d3",
-    roughness: 0.7,
-    strokeWidth: 1 / zoom, // Clamp minimum value
+    stroke: style.stroke ?? "#00ffff",
+    roughness: style.roughness ?? 1,
+    strokeWidth: (style.strokeWidth ?? 1) / zoom,
+    fill: style.fill,
+    fillStyle: style.fillStyle,
+    dashGap: style.strokeStyle === 'dashed' ? 4 : style.strokeStyle === 'dotted' ? 1.5 : undefined,
+    dashOffset: style.strokeStyle === 'dotted' ? 2 : undefined
   };
+  if (style.fill) {
+  scaledOptions.fill = style.fill;
+  scaledOptions.fillStyle = style.fillStyle ?? "hachure";
+}
 
   switch (type) {
     case "rectangle":
-      return generator.rectangle(start.x, start.y, width, height, scaledOptions);
+      return generator.rectangle(
+        start.x,
+        start.y,
+        width,
+        height,
+        scaledOptions
+      );
 
     case "ellipse":
       const clientX = start.x + width / 2;

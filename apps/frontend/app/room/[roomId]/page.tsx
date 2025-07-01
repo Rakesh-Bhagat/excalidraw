@@ -47,10 +47,10 @@ export const CanvasBoard = () => {
   if(!authCheck) return null;
   return (
     <div className=" flex relative justify-center">
-      <div className=" flex absolute z-10 top-7">
+      <div className=" flex absolute z-10 top-3">
         <ToolBox />
       </div>
-      <div className="z-12 flex absolute top-7 right-3">
+      <div className="z-12 flex absolute top-3 right-3">
         <SessionButton roomId={roomId}/>
       </div>
       <div>

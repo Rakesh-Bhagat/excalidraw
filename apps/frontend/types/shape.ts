@@ -5,6 +5,18 @@ export type Point = {
   y: number;
 };
 
+export type ShapeStyle ={
+  stroke?: string;
+  strokeWidth?: number;
+  fill? : string;
+  fillStyle? : 'solid' | 'hachure' | 'cross-hatch';
+  fillWeight?: number;
+  hachureAngle?: number;
+  hachureGap?: number;
+  roughness?: number;
+  strokeStyle?: 'solid' | 'dashed' | 'dotted'
+}
+
 export type ShapeType = "rectangle" | "ellipse" | 'drag' | 'select';
 
 export type Shape = {
@@ -16,4 +28,5 @@ export type Shape = {
   width: number;
   height: number;
   drawable?: Drawable;
+  style?: ShapeStyle;
 };

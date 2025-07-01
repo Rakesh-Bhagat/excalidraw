@@ -9,6 +9,8 @@ import { useToolStore } from "@/store/useToolStore";
 import { Point, Shape } from "@/types/shape";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import StyleSidebar from "./StyleSidebar";
+import { useStyleStore } from "@/store/useStyleStore";
 
 const Canvas = () => {
   const params = useParams();
@@ -20,6 +22,8 @@ const Canvas = () => {
   const { addShape, offset, setOffset, zoom, setZoom } = useShapeStore();
   const shapes = useShapeStore().roomShapes[roomId] || [];
   const isSessionStarted = useSessionStore((state) => state.isSessionStarted);
+  
+    const { canvasBg  } = useStyleStore();
 
   const size = useCanvasResize();
   const isDragging = useRef(false);
@@ -41,7 +45,7 @@ const Canvas = () => {
     offset,
     zoom,
     roomId,
-    isSessionStarted,
+    isSessionStarted
   );
 
   const handleWheel = useCallback(
@@ -54,9 +58,8 @@ const Canvas = () => {
       const mouseX = (e.clientX - rect.left - offset.x) / zoom;
       const mouseY = (e.clientY - rect.top - offset.y) / zoom;
 
-      
       const delta = -e.deltaY * 0.001;
-      const newZoom = Math.min(Math.max(zoom *(1 + delta), 0.001), 50);
+      const newZoom = Math.min(Math.max(zoom * (1 + delta), 0.001), 50);
       const zoomRatio = newZoom / zoom;
 
       const newOffset = {
@@ -130,13 +133,17 @@ const Canvas = () => {
   }, [onMouseDown, onMouseMove, onMouseUp, currentTool, offset, setOffset]);
 
   return (
-    <div ref={containerRef} className="w-full h-full overflow-hidden">
+    <div ref={containerRef} className="w-full h-full overflow-hidden relative">
       <canvas
         ref={canvasRef}
         width={size.width}
         height={size.height}
-        className={`bg-[hsl(var(--canvasBackground))] ${currentTool === "drag" ? isMouseDown ? "cursor-grabbing" : "cursor-grab"  :"cursor-crosshair"}`}
+        style={{backgroundColor: canvasBg}}
+        className={` ${currentTool === "drag" ? (isMouseDown ? "cursor-grabbing" : "cursor-grab" ) : currentTool === 'select' ? "cursor-move": "cursor-crosshair"}`}
       />
+      <div className="absolute left-4  top-20">
+        <StyleSidebar />
+      </div>
     </div>
   );
 };

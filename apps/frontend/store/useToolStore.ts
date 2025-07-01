@@ -9,6 +9,6 @@ interface ToolState {
 }
 
 export const useToolStore = create<ToolState>((set) => ({
-  currentTool: "rectangle",
+  currentTool: "select",
   setCurrentTool: (tool) => set({ currentTool: tool }),
 }));
