@@ -18,6 +18,7 @@ export type ShapeStyle ={
 }
 
 export type ShapeType = "rectangle" | "ellipse" | 'drag' | 'select';
+export type ResizeHandle = "top-left" | "top-right" | "bottom-left" | "bottom-right";
 
 export type Shape = {
   

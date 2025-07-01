@@ -11,6 +11,7 @@ import { useParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import StyleSidebar from "./StyleSidebar";
 import { useStyleStore } from "@/store/useStyleStore";
+import { useCanvasCursor } from "@/hooks/useCanvasCursor";
 
 const Canvas = () => {
   const params = useParams();
@@ -19,7 +20,7 @@ const Canvas = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const currentTool = useToolStore((state) => state.currentTool);
-  const { addShape, offset, setOffset, zoom, setZoom, setSelectedShapeId } = useShapeStore();
+  const { addShape, offset, setOffset, zoom, setZoom,selectedShapeId, setSelectedShapeId } = useShapeStore();
   const shapes = useShapeStore().roomShapes[roomId] || [];
   const isSessionStarted = useSessionStore((state) => state.isSessionStarted);
   
@@ -87,6 +88,16 @@ const Canvas = () => {
       canvas.removeEventListener("wheel", handleWheel);
     };
   }, [handleWheel]);
+
+  useCanvasCursor({
+    canvas: canvasRef.current,
+    tool: currentTool,
+    shapes,
+    selectedShapeId,
+    zoom,
+    offset,
+    isDragging: isDragging.current,
+  });
 
   useEffect(() => {
     const canvas = canvasRef.current;

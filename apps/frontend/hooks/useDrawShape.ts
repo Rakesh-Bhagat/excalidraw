@@ -1,5 +1,5 @@
 import isEqual from "lodash.isequal";
-import { Point, Shape } from "@/types/shape";
+import { Point, ResizeHandle, Shape } from "@/types/shape";
 import { clearCanvas, drawShape, generateDrawable } from "@/utils/draw";
 import { useEffect, useRef } from "react";
 import rough from "roughjs/bin/rough";
@@ -20,9 +20,7 @@ const useDrawShape = (
 ) => {
   const isDrawing = useRef(false);
   const startPoint = useRef<{ x: number; y: number } | null>(null);
-  const resizeHandle = useRef<
-    null | "top-left" | "top-right" | "bottom-left" | "bottom-right"
-  >(null);
+  const resizeHandle = useRef< ResizeHandle |null>(null);
 
   const roughCanvasRef = useRef<RoughCanvas | null>(null);
   const generatorRef = useRef<ReturnType<typeof rough.generator> | null>(null);
@@ -139,7 +137,7 @@ const useDrawShape = (
 
           for (const corner of corners) {
             if (isInHandle(mousePos, corner, handleSize)) {
-              resizeHandle.current = corner.name as any;
+              resizeHandle.current = corner.name as ResizeHandle;
               isDrawing.current = true;
               startPoint.current = mousePos;
               return;
@@ -230,46 +228,6 @@ const useDrawShape = (
   const onMouseMove = (e: MouseEvent) => {
     const currentPos = getMousePos(e);
 
-    if (
-      !isDrawing.current &&
-      currentTool === "select" &&
-      selectedShapeId &&
-      canvas
-    ) {
-      const shape = shapes.find((s) => s.id === selectedShapeId);
-      if (shape) {
-        const normX = shape.width < 0 ? shape.start.x + shape.width : shape.start.x;
-        const normY = shape.height < 0 ? shape.start.y + shape.height : shape.start.y;
-        const normWidth = Math.abs(shape.width);
-        const normHeight = Math.abs(shape.height);
-        const handleSize = 10 / zoom;
-
-        const corners = [
-          { name: "top-left", x: normX, y: normY },
-          { name: "top-right", x: normX + normWidth, y: normY },
-          { name: "bottom-left", x: normX, y: normY + normHeight },
-          { name: "bottom-right", x: normX + normWidth, y: normY + normHeight },
-        ];
-
-        for (const corner of corners) {
-          if (isInHandle(currentPos, corner, handleSize)) {
-            canvas.style.cursor =
-              corner.name === "top-left" || corner.name === "bottom-right"
-                ? "nwse-resize"
-                : "nesw-resize";
-            return;
-          }
-        }
-
-        canvas.style.cursor = "move";
-        return;
-      }
-    }
-
-    // 🔄 Reset cursor if nothing selected
-    if (!selectedShapeId && canvas) {
-      canvas.style.cursor = "default";
-    }
 
     if (
       !isDrawing.current ||
