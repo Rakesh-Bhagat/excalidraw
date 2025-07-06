@@ -4,7 +4,7 @@ interface InputButtonProps{
 }
 const InputButton = ({buttonText, onSubmit}: InputButtonProps) => {
   return (
-    <button type="button" onClick={onSubmit} className="w-full bg-[hsl(var(--input-button))] p-3 rounded text-white">{buttonText}</button>
+    <button type="button" onClick={onSubmit} className="cursor-pointer w-full bg-[hsl(var(--input-button))] p-3 rounded text-white">{buttonText}</button>
   )
 }
 

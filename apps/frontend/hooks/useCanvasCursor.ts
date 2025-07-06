@@ -54,6 +54,13 @@ export const useCanvasCursor = ({
           "<path d=%22M1 15l4-1 9-9-3-3-9 9-1 4z%22 fill=%22white%22/></svg>') 0 32, auto";
         return;
       }
+      if (tool === "eraser") {
+        canvas.style.cursor =
+          "url('data:image/svg+xml;utf8," +
+          "<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2232%22 height=%2232%22>" +
+          "<circle cx=%2216%22 cy=%2216%22 r=%228%22  stroke=%22gray%22 stroke-width=%222%22 /></svg>') 16 16, auto";
+        return;
+      }
       if (tool === "select" && !selectedShapeId) {
         canvas.style.cursor = "default";
       }

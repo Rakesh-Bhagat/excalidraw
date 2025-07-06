@@ -9,14 +9,19 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@types/axios": "^0.14.4",
+    "@types/jwt-decode": "^3.1.0",
     "@types/lodash.isequal": "^4.5.8",
     "axios": "^1.10.0",
+    "clsx": "^2.1.1",
+    "jwt-decode": "^4.0.0",
     "lodash.isequal": "^4.5.0",
     "lucide-react": "^0.522.0",
     "next": "15.3.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "roughjs": "^4.6.6",
+    "tailwind-merge": "^3.3.1",
     "uuid": "^11.1.0",
     "zustand": "^5.0.5"
   },
