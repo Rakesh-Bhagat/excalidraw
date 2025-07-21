@@ -2,9 +2,6 @@ import { Shape } from "@/types/shape";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-
-
-
 type ShapeStore = {
   roomShapes: Record<string, Shape[]>;
   addShape: (roomId: string, shape: Shape) => void;

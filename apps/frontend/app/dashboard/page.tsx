@@ -13,6 +13,12 @@ interface Room {
   creatorId: string;
   createdAt: Date;
 }
+interface RawRoom {
+  id: string;
+  name: string;
+  creatorId: string;
+  createdAt: Date;
+}
 interface DecodedToken {
   name: string;
   userId: string;
@@ -36,7 +42,7 @@ const Dashboard = () => {
         });
         if (!response) return;
         setRooms(
-          response.data.map((room) => ({
+          response.data.map((room : RawRoom) => ({
             ...room,
             createdAt: new Date(room.createdAt),
           }))
@@ -114,7 +120,7 @@ const Dashboard = () => {
         setUser(null);
       }
     }
-  }, []);
+  }, [router]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
