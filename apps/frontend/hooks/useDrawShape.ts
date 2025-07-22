@@ -95,6 +95,7 @@ const useDrawShape = (
   ]);
 
   const getMousePos = (e: MouseEvent): Point => {
+    if(!canvas) return { x: 0, y: 0 };
     const rect = canvas!.getBoundingClientRect();
 
     return {

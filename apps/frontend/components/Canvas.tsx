@@ -7,7 +7,7 @@ import { useSessionStore } from "@/store/useSessionstore";
 import { useShapeStore } from "@/store/useShapeStore";
 import { useToolStore } from "@/store/useToolStore";
 import { Point, Shape } from "@/types/shape";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import StyleSidebar from "./StyleSidebar";
 import { useStyleStore } from "@/store/useStyleStore";
@@ -15,9 +15,13 @@ import { useCanvasCursor } from "@/hooks/useCanvasCursor";
 
 const Canvas = () => {
   const params = useParams();
-  const roomId = params.roomId as string;
+  const pathname = usePathname();
+  const isStandalone = pathname === "/canvas";
+  const roomId = isStandalone ? "standalone" : (params.roomId as string);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const [isClient, setIsClient] = useState(false);
 
   const currentTool = useToolStore((state) => state.currentTool);
   const {
@@ -39,13 +43,21 @@ const Canvas = () => {
   const [isDragging, setIsDragging] = useState(false);
   const lastPos = useRef<Point>({ x: 0, y: 0 });
 
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const handleShapeDrawn = (shape: Shape) => {
-    addShape(roomId, shape);
+    addShape(isStandalone ? "standalone" : roomId, shape);
     setSelectedShapeId(shape.id);
     setCurrentTool("select");
-    if (isSessionStarted) {
-      wsClient.sendShape(roomId, shape);
+    if(isClient){
+      const token = localStorage.getItem("token");
+      if (isSessionStarted && !isStandalone && token) {
+        wsClient.sendShape(roomId, shape);
+    }  
     }
+    
   };
 
   const { onMouseDown, onMouseUp, onMouseMove } = useDrawShape(
@@ -108,9 +120,12 @@ const Canvas = () => {
   });
 
   useEffect(() => {
-  setZoom(1);
-  setOffset({ x: 0, y: 0 });
-}, [roomId, setZoom, setOffset]);
+    if(!isStandalone) {
+      setZoom(1);
+      setOffset({ x: 0, y: 0 });
+    }
+  
+  }, [roomId, setZoom, setOffset, isStandalone]);
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -171,6 +186,11 @@ const Canvas = () => {
       <div className="absolute left-4  top-20">
         <StyleSidebar />
       </div>
+      )}
+      {isStandalone && isClient && !localStorage.getItem("token") && (
+        <div className="absolute bottom-4 left-4 bg-blue-500/20 border border-blue-500/30 rounded-lg px-3 py-2 text-blue-300 text-sm">
+          Drawing locally - Sign in to collaborate with others
+        </div>
       )}
     </div>
   );

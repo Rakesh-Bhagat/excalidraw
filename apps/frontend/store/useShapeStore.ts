@@ -15,6 +15,7 @@ type ShapeStore = {
   selectedShapeId: string | null;
   setSelectedShapeId: (id: string | null) => void;
   updateShape: (roomId: string, shape: Shape) => void;
+  copyShapesToStandalone: (fromRoomId: string) => void;
 };
 
 export const useShapeStore = create<ShapeStore>()(
@@ -53,7 +54,11 @@ export const useShapeStore = create<ShapeStore>()(
           ...state.roomShapes,
           [roomId]: state.roomShapes[roomId].map((s) => s.id === updateShape.id ? updateShape: s)
         }
-      }))
+      })),
+      copyShapesToStandalone: (fromRoomId) => set((state) => ({roomShapes: {
+        ...state.roomShapes,
+        standalone: [...(state.roomShapes[fromRoomId] || [])]
+      }})),
     }),
     {
       name: "shapes-store",

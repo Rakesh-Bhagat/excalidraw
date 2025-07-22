@@ -1,50 +1,158 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { wsClient } from "@/hooks/useWSClient";
 import { useSessionStore } from "@/store/useSessionstore";
+import { useShapeStore } from "@/store/useShapeStore";
+import axios from "axios";
+import { useRouter } from "next/navigation";
 
 const SessionButton = ({ roomId }: { roomId: string }) => {
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
   const isConnected = useSessionStore((state) => state.isSessionStarted);
   const setIsConnected = useSessionStore((state) => state.setSessionStarted);
+  const { getShapes, setShapes } = useShapeStore();
+  const router = useRouter();
+  const isStandalone = roomId === "standalone";
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleClick = async () => {
     const token = localStorage.getItem("token") || "";
+    if(!token && isStandalone) {
+      setError("Please sign in to start a collaboration session.");
+      router.push("/signin")
+      return;
+    }
+    
+    setLoading(true);
 
     if (!isConnected) {
-      try {
-        await wsClient.connect(roomId, token, {
-          onOpen: () => {
-            setIsConnected(true);
-            setError(null);
-            console.log("Connected, ready to draw or send shapes");
-          },
-          onError: () => {
-            setError("Failed to connect to session.");
-          },
-          onClose: () => {
-            setIsConnected(false);
-            console.warn("Disconnected from session.");
-          },
-        });
-      } catch (err) {
-        console.error("Connect failed", err);
+      if (isStandalone) {
+        try {
+          const standaloneShapes = getShapes("standalone");
+          const response = await axios.post(
+            "http://localhost:8000/room",
+            {
+              name: `Canvas Session ${new Date().toLocaleString()}`,
+            },
+            {
+              headers: {
+                Authorization: token,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          const newroomId = response.data.id;
+          console.log(standaloneShapes);
+
+          setShapes(newroomId, standaloneShapes);
+          if (standaloneShapes.length > 0) {
+            console.log(
+              "Attempting to save shapes to:",
+              `http://localhost:8000/shapes/${newroomId}`
+            );
+            console.log("Shapes data:", standaloneShapes);
+
+            try {
+              const shapesResponse = await axios.post(
+                `http://localhost:8000/bulkShapes/${newroomId}`,
+                {
+                  shapes: standaloneShapes,
+                },
+                {
+                  headers: {
+                    Authorization: token,
+                    "Content-Type": "application/json",
+                  },
+                }
+              );
+              console.log("Shapes saved successfully:", shapesResponse.data);
+            } catch (shapesError) {
+              console.error("Failed to save shapes:", shapesError);
+            }
+          }
+
+          router.push(`/room/${newroomId}`);
+          console.log("Standalone session created with roomId:", newroomId);
+          setIsConnected(false);
+          setError(null);
+          console.log("Connected, ready to draw or send shapes");
+        } catch (error) {
+          console.error("Failed to create standalone session", error);
+        }
+      } else {
+        try {
+          await wsClient.connect(roomId, token, {
+            onOpen: () => {
+              setIsConnected(true);
+              setError(null);
+              console.log("Connected, ready to draw or send shapes");
+            },
+            onError: () => {
+              setError("Failed to connect to session.");
+            },
+            onClose: () => {
+              setIsConnected(false);
+              console.warn("Disconnected from session.");
+            },
+          });
+        } catch (err) {
+          console.error("Connect failed", err);
+        }
       }
     } else {
-      wsClient.disconnect();
-      setIsConnected(false);
-      setError(null);
+      if (!isStandalone) {
+        const currentShapes = getShapes(roomId);
+        setShapes("standalone", currentShapes);
+        wsClient.disconnect();
+        setIsConnected(false);
+        setError(null);
+        router.push("/canvas");
+      } else {
+        wsClient.disconnect();
+        setIsConnected(false);
+        setError(null);
+      }
     }
+    setLoading(false);
   };
+  const getButtonText = () => {
+    if (loading) return "Loading...";
+    if(isStandalone){
+      if(!isClient) return "Loading...";
+      const token = localStorage.getItem("token");
+      return token ? "Start Session" : "Sign In to Collaborate";
+    }
+    return isConnected ? "Stop Session" : "Start Session";
+    };
+
+    if (!isClient) {
+    return (
+      <div>
+        <button
+          disabled
+          className="p-2 bg-[hsl(var(--icon-selected))] text-white rounded-md disabled:opacity-50"
+        >
+          Loading...
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div>
       <button
         onClick={handleClick}
-        className="p-2 bg-[hsl(var(--icon-selected))] text-white rounded-md"
+        className="p-2 bg-[hsl(var(--icon-selected))] text-white rounded-md disabled:opacity-50"
       >
-        {isConnected ? "Stop Session" : "Start Session"}
+        {getButtonText()}
       </button>
       {error && <p className="text-red-500 mt-2">{error}</p>}
     </div>

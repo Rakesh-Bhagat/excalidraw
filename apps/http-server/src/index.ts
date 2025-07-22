@@ -19,6 +19,10 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  next();
+});
 
 // // Allow preflight requests
 // app.options("*", cors({
@@ -137,7 +141,7 @@ app.delete(
   async (req: Request, res: Response): Promise<any> => {
     const { roomId } = req.body;
     if (!roomId) {
-    return res.status(400).json({ message: "roomId is required" });
+      return res.status(400).json({ message: "roomId is required" });
     }
     const userId = req.userId;
     try {
@@ -180,6 +184,44 @@ app.get(
         message: "Internal Server Error",
         error,
       });
+    }
+  }
+);
+app.post(
+  "/bulkShapes/:roomId",
+  middleware,
+  async (req: Request, res: Response): Promise<any> => {
+    try {
+      const { roomId } = req.params;
+      console.log("Saving shapes for room:", roomId);
+      const { shapes } = req.body;
+      const userId = req.userId;
+      if (!roomId) {
+        return res.status(400).json({ message: "roomId is required" });
+      }
+
+      if (!shapes || !Array.isArray(shapes)) {
+        return res.status(400).json({ message: "Invalid shapes data" });
+      }
+      const savedShapes = await Promise.all(
+        shapes.map(async (shape: any) => {
+          return prisma.shape.create({
+            data: {
+              roomId,
+              shapeId: shape.id,
+              message: JSON.stringify(shape),
+              userId,
+            },
+          });
+        })
+      );
+      res.status(201).json({
+        message: "Shapes saved successfully",
+        count: savedShapes.length,
+      });
+    } catch (error) {
+      console.error("Error saving shapes:", error);
+      res.status(500).json({ message: "Internal server error" });
     }
   }
 );

@@ -14,7 +14,6 @@ export const CanvasBoard = () => {
 
   const isSessionStarted = useSessionStore((state) => state.isSessionStarted);
   const setSessionStarted = useSessionStore((state) => state.setSessionStarted);
-  console.log(roomId)
   const [authCheck, setAuthCheck] = useState(false)
 
   useEffect(()=>{

@@ -21,7 +21,7 @@ const Signup = () => {
       );
       const token = response.data.token;
       localStorage.setItem("token", token);
-      router.push("/dashboard");
+      router.push("/canvas");
     } catch (error) {
       console.log("signin failed: " + error);
     }
