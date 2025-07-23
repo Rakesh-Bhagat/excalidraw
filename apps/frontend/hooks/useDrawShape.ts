@@ -42,19 +42,26 @@ const useDrawShape = (
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    const drawFrame = () => {
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      clearCanvas(ctx, canvas.width, canvas.height);
+      ctx.setTransform(zoom, 0, 0, zoom, offset.x, offset.y);
 
-    clearCanvas(ctx, canvas.width, canvas.height);
-    ctx.setTransform(zoom, 0, 0, zoom, offset.x, offset.y);
+      shapes.forEach((shape) => {
+        if (shape.type === "deleted") return;
+        drawShape(
+          roughCanvasRef.current!,
+          shape,
+          shape.id === selectedShapeId,
+          zoom
+        );
+      });
+    };
 
-    shapes.forEach((shape) => {
-      drawShape(
-        roughCanvasRef.current!,
-        shape,
-        shape.id === selectedShapeId,
-        zoom
-      );
-    });
+    const frameId = requestAnimationFrame(drawFrame);
+    return () => {
+      cancelAnimationFrame(frameId);
+    };
   }, [shapes, canvas, offset, zoom, selectedShapeId]);
 
   useEffect(() => {
@@ -62,8 +69,11 @@ const useDrawShape = (
 
     const selectedShape = shapes.find((s) => s.id === selectedShapeId);
     if (!selectedShape) return;
+    const currentStyle = useStyleStore.getState().style;
     const targetStyle =
-      selectedShape.type === "draw" ? { ...style, roughness: 0 } : style;
+      selectedShape.type === "draw"
+        ? { ...currentStyle, roughness: 0 }
+        : currentStyle;
 
     if (isEqual(selectedShape.style, targetStyle)) return;
 
@@ -81,7 +91,7 @@ const useDrawShape = (
         ) ?? undefined,
     };
     updateShape(roomId, updatedShape);
-    if (isSessionStarted) {
+    if (isSessionStarted && !roomId.includes("standalone")) {
       wsClient.sendShape(roomId, updatedShape);
     }
   }, [
@@ -95,7 +105,7 @@ const useDrawShape = (
   ]);
 
   const getMousePos = (e: MouseEvent): Point => {
-    if(!canvas) return { x: 0, y: 0 };
+    if (!canvas) return { x: 0, y: 0 };
     const rect = canvas!.getBoundingClientRect();
 
     return {
@@ -110,6 +120,58 @@ const useDrawShape = (
       mouse.x <= handle.x + size / 2 &&
       mouse.y >= handle.y - size / 2 &&
       mouse.y <= handle.y + size / 2
+    );
+  };
+
+  const isPointNearLine = (
+    point: Point,
+    start: Point,
+    end: Point,
+    threshold: number = 5
+  ): boolean => {
+    const A = point.x - start.x;
+    const B = point.y - start.y;
+    const C = end.x - start.x;
+    const D = end.y - start.y;
+    const dot = A * C + B * D;
+    const lensq = C * C + D * D;
+
+    if (lensq === 0) return Math.sqrt(A * A + B * B) <= threshold;
+
+    let param = dot / lensq;
+    param = Math.max(0, Math.min(1, param));
+
+    const xx = start.x + param * C;
+    const yy = start.y + param * D;
+
+    const dx = point.x - xx;
+    const dy = point.y - yy;
+
+    return Math.sqrt(dx * dx + dy * dy) <= threshold / zoom;
+  };
+  const isPointInShape = (point: Point, shape: Shape): boolean => {
+    if (shape.type === "line" || shape.type === "arrow") {
+      return isPointNearLine(point, shape.start, shape.end, 5);
+    }
+
+    if (shape.type === "draw" && shape.points) {
+      for (let i = 0; i < shape.points.length - 1; i++) {
+        if (isPointNearLine(point, shape.points[i], shape.points[i + 1], 5)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    const normX = shape.width < 0 ? shape.start.x + shape.width : shape.start.x;
+    const normY =
+      shape.height < 0 ? shape.start.y + shape.height : shape.start.y;
+    const normWidth = Math.abs(shape.width);
+    const normHeight = Math.abs(shape.height);
+    return (
+      point.x >= normX &&
+      point.x <= normX + normWidth &&
+      point.y >= normY &&
+      point.y <= normY + normHeight
     );
   };
 
@@ -162,21 +224,17 @@ const useDrawShape = (
             }
           }
         }
+        if (isPointInShape(mousePos, shape!)) {
+          isDrawing.current = true;
+          startPoint.current = mousePos;
+          return;
+        }
       }
     }
 
-    const selected = shapes.find(({ start, width, height }) => {
-      const normX = width < 0 ? start.x + width : start.x;
-      const normY = height < 0 ? start.y + height : start.y;
-      const normWidth = Math.abs(width);
-      const normHeight = Math.abs(height);
-
-      return (
-        mousePos.x >= normX &&
-        mousePos.x <= normX + normWidth &&
-        mousePos.y >= normY &&
-        mousePos.y <= normY + normHeight
-      );
+    const selected = [...shapes].find((shape) => {
+      if (shape.type === "deleted") return false;
+      return isPointInShape(mousePos, shape);
     });
 
     if (selected) {
@@ -202,22 +260,22 @@ const useDrawShape = (
     )
       return;
 
-    if (currentTool === "eraser" ) {
-      if(erasedShapeIds.current.size > 0){
-        const updated = shapes.filter((s) => erasedShapeIds.current.has(s.id))
-        for (const shape of updated){
+    if (currentTool === "eraser") {
+      if (erasedShapeIds.current.size > 0) {
+        const updated = shapes.filter((s) => erasedShapeIds.current.has(s.id));
+        for (const shape of updated) {
           const deletedShapes: Shape = {
-            ...shape, 
-            type: 'deleted'
+            ...shape,
+            type: "deleted",
           };
           updateShape(roomId, deletedShapes);
-          if(isSessionStarted){
-            wsClient.sendShape(roomId, deletedShapes)
+          if (isSessionStarted) {
+            wsClient.sendShape(roomId, deletedShapes);
           }
         }
       }
       erasedShapeIds.current.clear();
-      fadedShapeIds.current.clear()
+      fadedShapeIds.current.clear();
       isDrawing.current = false;
       return;
     }
@@ -243,6 +301,12 @@ const useDrawShape = (
       const end = { x: maxX, y: maxY };
       const width = maxX - minX;
       const height = maxY - minY;
+
+      const currentStyle = useStyleStore.getState().style;
+      const shapeStyle = {
+        ...currentStyle,
+        roughness: 0,
+      };
       const shape: Shape = {
         id: crypto.randomUUID(),
         type: "draw",
@@ -251,10 +315,7 @@ const useDrawShape = (
         width,
         height,
         points,
-        style: {
-          ...style,
-          roughness: 0,
-        },
+        style: shapeStyle,
         drawable:
           generateDrawable(
             generatorRef.current,
@@ -265,10 +326,7 @@ const useDrawShape = (
               end,
               width: 0,
               height: 0,
-              style: {
-                ...style,
-                roughness: 0,
-              },
+              style: shapeStyle,
               points,
             },
             zoom
@@ -285,6 +343,7 @@ const useDrawShape = (
     const width = end.x - start.x;
     const height = end.y - start.y;
 
+    const currentStyle = useStyleStore.getState().style;
     const shape: Shape = {
       id: crypto.randomUUID(),
       type: currentTool,
@@ -292,7 +351,7 @@ const useDrawShape = (
       end,
       width,
       height,
-      style,
+      style: currentStyle,
       drawable:
         generateDrawable(
           generatorRef.current,
@@ -303,7 +362,7 @@ const useDrawShape = (
             end,
             width,
             height,
-            style,
+            style: currentStyle,
           },
           zoom
         ) ?? undefined,
@@ -343,99 +402,95 @@ const useDrawShape = (
       const shape = shapes.find((s) => s.id === selectedShapeId);
       if (!shape) return;
 
-      let newStart = { ...shape.start };
-      let newEnd = { ...shape.end };
+      if (shape.type != "line" && shape.type != "arrow") {
+        let newStart = { ...shape.start };
+        let newEnd = { ...shape.end };
 
-      switch (resizeHandle.current) {
-        case "top-left":
-          newStart = currentPos;
-          break;
+        switch (resizeHandle.current) {
+          case "top-left":
+            newStart = currentPos;
+            break;
 
-        case "top-right":
-          newStart = { x: shape.start.x, y: currentPos.y };
-          newEnd = { x: currentPos.x, y: shape.end.y };
-          break;
-        case "bottom-left":
-          newStart = { x: currentPos.x, y: shape.start.y };
-          newEnd = { x: shape.end.x, y: currentPos.y };
-          break;
+          case "top-right":
+            newStart = { x: shape.start.x, y: currentPos.y };
+            newEnd = { x: currentPos.x, y: shape.end.y };
+            break;
+          case "bottom-left":
+            newStart = { x: currentPos.x, y: shape.start.y };
+            newEnd = { x: shape.end.x, y: currentPos.y };
+            break;
 
-        case "bottom-right":
-          newEnd = currentPos;
-          break;
+          case "bottom-right":
+            newEnd = currentPos;
+            break;
+        }
+        const newWidth = newEnd.x - newStart.x;
+        const newHeight = newEnd.y - newStart.y;
+        let updatedPoints = shape.points;
+        if (shape.type === "draw" && shape.points) {
+          const scaleX = newWidth / shape.width;
+          const scaleY = newHeight / shape.height;
+
+          updatedPoints = shape.points.map((p) => ({
+            x: newStart.x + (p.x - shape.start.x) * scaleX,
+            y: newStart.y + (p.y - shape.start.y) * scaleY,
+          }));
+        }
+        const updatedShape: Shape = {
+          ...shape,
+          start: newStart,
+          end: newEnd,
+          width: newWidth,
+          height: newHeight,
+          points: updatedPoints,
+          drawable:
+            generateDrawable(
+              generator,
+              {
+                ...shape,
+                start: newStart,
+                end: newEnd,
+                width: newWidth,
+                height: newHeight,
+                points: updatedPoints,
+              },
+              zoom
+            ) ?? undefined,
+        };
+        updateShape(roomId, updatedShape);
+        if (isSessionStarted) {
+          wsClient.sendShape(roomId, updatedShape);
+        }
+        return;
       }
-      const newWidth = newEnd.x - newStart.x;
-      const newHeight = newEnd.y - newStart.y;
-      let updatedPoints = shape.points;
-      if (shape.type === "draw" && shape.points) {
-        const scaleX = newWidth / shape.width;
-        const scaleY = newHeight / shape.height;
-
-        updatedPoints = shape.points.map((p) => ({
-          x: newStart.x + (p.x - shape.start.x) * scaleX,
-          y: newStart.y + (p.y - shape.start.y) * scaleY,
-        }));
-      }
-      const updatedShape: Shape = {
-        ...shape,
-        start: newStart,
-        end: newEnd,
-        width: newWidth,
-        height: newHeight,
-        points: updatedPoints,
-        drawable:
-          generateDrawable(
-            generator,
-            {
-              ...shape,
-              start: newStart,
-              end: newEnd,
-              width: newWidth,
-              height: newHeight,
-              points: updatedPoints,
-            },
-            zoom
-          ) ?? undefined,
-      };
-      updateShape(roomId, updatedShape);
-      if (isSessionStarted) {
-        wsClient.sendShape(roomId, updatedShape);
-      }
-      return;
     }
 
     if (currentTool === "eraser" && isDrawing.current) {
       const mouse = getMousePos(e);
-      fadedShapeIds.current.clear()
+      fadedShapeIds.current.clear();
       shapes.forEach((shape) => {
         if (shape.type === "deleted") return;
-        const normX =shape.width < 0 ? shape.start.x + shape.width : shape.start.x;
-        const normY =shape.height < 0 ? shape.start.y + shape.height : shape.start.y;
-        const normWidth = Math.abs(shape.width);
-        const normHeight = Math.abs(shape.height);
+        if(isPointInShape(mouse, shape)) {
+          fadedShapeIds.current.add(shape.id);
+          erasedShapeIds.current.add(shape.id);
+        }
+      });
 
-        const isInside =
-      mouse.x >= normX &&
-      mouse.x <= normX + normWidth &&
-      mouse.y >= normY &&
-      mouse.y <= normY + normHeight;
-
-       if (isInside) {
-        fadedShapeIds.current.add(shape.id)
-        erasedShapeIds.current.add(shape.id)
-      }});
+        
       shapes.forEach((shape) => {
         const isSelected = shape.id === selectedShapeId;
-        const isFaded = fadedShapeIds.current.has(shape.id)
+        const isFaded = fadedShapeIds.current.has(shape.id);
 
-        const previewStyle = isFaded ? {...shape.style, stroke: "#c6c1c0", fill: undefined, roughness: 0} : shape.style
+        const previewStyle = isFaded
+          ? { ...shape.style, stroke: "#c6c1c0", fill: undefined, roughness: 0 }
+          : shape.style;
 
         const previewShape = {
           ...shape,
-          style: previewStyle
+          style: previewStyle,
         };
-        drawShape(roughCanvas, previewShape,isSelected, zoom);
-      })
+        drawShape(roughCanvas, previewShape, isSelected, zoom);
+      });
       return;
     }
     if (currentTool === "draw" && isDrawing.current) {
@@ -507,8 +562,8 @@ const useDrawShape = (
         start: newStart,
         end: newEnd,
         style: selectedShape.style,
-        width: newEnd.x - newStart.x,
-        height: newEnd.y - newStart.y,
+        width: selectedShape.type === "line" || selectedShape.type === "arrow" ? newEnd.x - newStart.x : selectedShape.width,
+        height: selectedShape.type === "line" || selectedShape.type === "arrow" ? newEnd.y - newStart.y : selectedShape.height,
         points: updatedPoints,
         drawable:
           generateDrawable(
@@ -517,6 +572,8 @@ const useDrawShape = (
               ...selectedShape,
               start: newStart,
               end: newEnd,
+              width: newEnd.x - newStart.x,
+              height: newEnd.y - newStart.y,
               style: selectedShape.style,
               points: updatedPoints,
             },

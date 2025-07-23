@@ -11,6 +11,7 @@ interface Props {
   isDragging: boolean;
 }
 
+
 export const useCanvasCursor = ({
   canvas,
   tool,
@@ -20,8 +21,34 @@ export const useCanvasCursor = ({
   offset,
   isDragging,
 }: Props) => {
+
+  
+
   useEffect(() => {
     if (!canvas) return;
+
+    const isPointNearLine = (point: Point, start: Point, end: Point, threshold: number): boolean => {
+  const A = point.x - start.x;
+  const B = point.y - start.y;
+  const C = end.x - start.x;
+  const D = end.y - start.y;
+
+  const dot = A * C + B * D;
+  const lenSq = C * C + D * D;
+
+  if (lenSq === 0) return Math.sqrt(A * A + B * B) <= threshold;
+
+  let param = dot / lenSq;
+  param = Math.max(0, Math.min(1, param));
+
+  const xx = start.x + param * C;
+  const yy = start.y + param * D;
+
+  const dx = point.x - xx;
+  const dy = point.y - yy;
+
+  return Math.sqrt(dx * dx + dy * dy) <= threshold / zoom;
+};
 
     const getMousePos = (e: MouseEvent): Point => {
       const rect = canvas.getBoundingClientRect();
@@ -63,12 +90,31 @@ export const useCanvasCursor = ({
       }
       if (tool === "select" && !selectedShapeId) {
         canvas.style.cursor = "default";
+        return;
       }
       if (tool === "select" && selectedShapeId) {
         const shape = shapes.find((s) => s.id === selectedShapeId);
         if (!shape) {
           canvas.style.cursor = "crosshair";
           return;
+        }
+        if(shape.type === 'line' || shape.type === 'arrow') {
+          const mousePos = getMousePos(e);
+          const isNearLine = isPointNearLine(mousePos, shape.start, shape.end, 5 / zoom);
+          canvas.style.cursor = isNearLine ? "move" : "crosshair";
+          return;
+        }
+        if(shape.type === 'draw' && shape.points){
+          const mousePos = getMousePos(e);
+          let isNearPath = false;
+          for(let i = 0; i < shape.points.length - 1; i++) {
+            if(isPointNearLine(mousePos, shape.points[i], shape.points[i + 1], 5 / zoom)) {
+              isNearPath = true;
+              break;
+            }
+        }
+        canvas.style.cursor = isNearPath ? "move" : "crosshair";
+        return;
         }
 
         const normX =

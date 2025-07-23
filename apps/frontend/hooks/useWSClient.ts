@@ -50,8 +50,10 @@ const connect = (
           useShapeStore.getState().zoom ?? 1
         );
         if (existing) {
+          if(!isEqual(existing, shape)) {
           updateShape(roomId, shape);
           console.log("updated shape");
+          }
         } else {
           addShape(roomId, shape);
           console.log("updated shape");

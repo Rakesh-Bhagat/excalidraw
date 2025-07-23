@@ -78,18 +78,22 @@ export const generateDrawable = (
 ) => {
   const { type, start, end, width, height, style = {}, points } = shape;
   const scaledOptions = {
-    stroke: style.stroke ?? "#00ffff",
-    roughness: style.roughness ?? 1,
+    stroke: style.stroke ?? "#d3d3d3",
+    roughness: style.roughness ?? 2,
     strokeWidth: (style.strokeWidth ?? 1) / zoom,
     fill: style.fill,
     fillStyle: style.fillStyle,
     dashGap:
       style.strokeStyle === "dashed"
-        ? 4
+        ? 4 / zoom
         : style.strokeStyle === "dotted"
-          ? 1.5
+          ? 1.5 / zoom
           : undefined,
-    dashOffset: style.strokeStyle === "dotted" ? 2 : undefined,
+    dashOffset: style.strokeStyle === "dotted" ? 2 / zoom  : undefined,
+
+    seed: parseInt(shape.id.slice(0, 8), 16),
+    disableMultiStroke: true,
+    preserveVertices: true,
   };
   if (style.fill) {
     scaledOptions.fill = style.fill;

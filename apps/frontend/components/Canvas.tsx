@@ -188,7 +188,7 @@ const Canvas = () => {
       </div>
       )}
       {isStandalone && isClient && !localStorage.getItem("token") && (
-        <div className="absolute bottom-4 left-4 bg-blue-500/20 border border-blue-500/30 rounded-lg px-3 py-2 text-blue-300 text-sm">
+        <div className="absolute bottom-4 right-4 bg-blue-500/20 border border-blue-500/30 rounded-lg px-3 py-2 text-blue-300 text-sm">
           Drawing locally - Sign in to collaborate with others
         </div>
       )}
