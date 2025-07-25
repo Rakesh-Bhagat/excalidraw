@@ -32,14 +32,14 @@ export const CanvasBoard = () => {
     wsClient.connect(roomId, token, {
       onOpen: () => {
         setSessionStarted(true);
-        console.log("Auto-connected to WebSocket session");
+        // console.log("Auto-connected to WebSocket session");
       },
       onError: (err) => {
         console.error("WebSocket connection error", err);
       },
       onClose: () => {
         setSessionStarted(false);
-        console.warn("WebSocket disconnected");
+        // console.warn("WebSocket disconnected");
       },
     });
   }, [roomId, isSessionStarted, setSessionStarted, authCheck]);

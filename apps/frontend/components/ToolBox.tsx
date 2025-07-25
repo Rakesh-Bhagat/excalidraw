@@ -1,6 +1,6 @@
 import { useShapeStore } from "@/store/useShapeStore";
 import { useToolStore } from "@/store/useToolStore";
-import { Circle, Diamond, Eraser, Hand, Minus, MousePointer, MoveRight, Pencil, Square } from "lucide-react";
+import { Circle, Diamond, Eraser, Hand, Minus, MousePointer, MoveRight, Pencil, Square, TypeOutline } from "lucide-react";
 
 const ToolBox = () => {
   const currentTool = useToolStore((state) => state.currentTool);
@@ -106,6 +106,18 @@ const ToolBox = () => {
             className={`cursor-pointer p-2 rounded-lg ${currentTool == "eraser" ? "bg-[hsl(var(--icon-selected))] " : ""}`}
           >
             <Eraser  className={`w-5 h-5`} />
+          </button>
+        </div>
+
+        <div className="flex rounded-lg hover:bg-[hsl(var(--icon-hover))] w-full">
+          <button
+            onClick={() => {
+              setCurrentTool("text");
+              setSelectedShapeId(null)
+            }}
+            className={`cursor-pointer p-2 rounded-lg ${currentTool == "text" ? "bg-[hsl(var(--icon-selected))] " : ""}`}
+          >
+            <TypeOutline  className={`w-5 h-5`} />
           </button>
         </div>
        

@@ -2,6 +2,7 @@ import { useShapeStore } from "@/store/useShapeStore";
 import { Shape } from "@/types/shape";
 import rough from "roughjs/bin/rough";
 import { generateDrawable } from "@/utils/draw";
+import isEqual from "lodash.isequal";
 
 const wsRef: { current: WebSocket | null } = { current: null };
 
@@ -32,7 +33,7 @@ const connect = (
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      console.log("shape received");
+      // console.log("shape received");
       if (data.type === "chat") {
         const { roomId, message: shape } = data;
         const { getShapes, updateShape, addShape } = useShapeStore.getState();
@@ -52,11 +53,11 @@ const connect = (
         if (existing) {
           if(!isEqual(existing, shape)) {
           updateShape(roomId, shape);
-          console.log("updated shape");
+          // console.log("updated shape");
           }
         } else {
           addShape(roomId, shape);
-          console.log("updated shape");
+          // console.log("updated shape");
         }
       }
     };
@@ -80,9 +81,9 @@ const sendShape = (roomId: string, shape: Shape) => {
         message: shape,
       })
     );
-    console.log("send");
+    // console.log("send");
   } else {
-    console.warn("WebSocket not ready, shape not sent");
+    // console.warn("WebSocket not ready, shape not sent");
   }
 };
 

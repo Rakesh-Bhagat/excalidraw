@@ -1,11 +1,24 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Patrick_Hand, Gloria_Hallelujah, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+
+const gloria = Gloria_Hallelujah({
+  variable: "--font-gloria",
+  subsets: ["latin"],
+  weight: "400",
+});
+
+const jetbrains = JetBrains_Mono({
+  variable: "--font-jetbrains",
+  subsets: ["latin"],
+  weight: "400",
+});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
+const patrick = Patrick_Hand({ variable: "--font-patrick-hand", subsets: ['latin'], weight: '400' });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -25,7 +38,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${patrick.variable} ${gloria.variable} ${jetbrains.variable} antialiased`}
       >
         {children}
       </body>

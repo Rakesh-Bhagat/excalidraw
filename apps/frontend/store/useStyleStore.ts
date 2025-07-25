@@ -12,10 +12,13 @@ interface StyleStore {
 export const useStyleStore = create<StyleStore>((set) => ({
   canvasBg: '#121212',
   style: {
-    stroke: "#d3d3d3",
+    stroke: "#ffffff",
     strokeWidth: 1,
     roughness: 2,
-    strokeStyle: 'solid'
+    strokeStyle: 'solid',
+    fontSize: 36,
+    fontFamily: 'Gloria Hallelujah',
+    textAlign: 'left',
   },
   setStyle: (partial) => {
     set((state) => ({
@@ -30,10 +33,13 @@ export const useStyleStore = create<StyleStore>((set) => ({
   resetStyle: () =>
     set(() => ({
       style: {
-        stroke: "#d3d3d3",
+        stroke: "#ffffff",
         strokeWidth: 1,
         roughness: 2,
-        strokeStyle: 'solid'
+        strokeStyle: 'solid',
+        fontSize: 36,
+        fontFamily: 'Gloria Hallelujah',
+        textAlign: 'left',
       },
     })),
 }));

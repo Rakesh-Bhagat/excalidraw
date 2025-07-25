@@ -50,16 +50,10 @@ const SessionButton = ({ roomId }: { roomId: string }) => {
           );
 
           const newroomId = response.data.id;
-          console.log(standaloneShapes);
 
           setShapes(newroomId, standaloneShapes);
           if (standaloneShapes.length > 0) {
-            console.log(
-              "Attempting to save shapes to:",
-              `http://localhost:8000/shapes/${newroomId}`
-            );
-            console.log("Shapes data:", standaloneShapes);
-
+            // Save shapes to the new room
             try {
               const shapesResponse = await axios.post(
                 `http://localhost:8000/bulkShapes/${newroomId}`,
@@ -73,17 +67,17 @@ const SessionButton = ({ roomId }: { roomId: string }) => {
                   },
                 }
               );
-              console.log("Shapes saved successfully:", shapesResponse.data);
+              // console.log("Shapes saved successfully:", shapesResponse.data);
             } catch (shapesError) {
               console.error("Failed to save shapes:", shapesError);
             }
           }
 
           router.push(`/room/${newroomId}`);
-          console.log("Standalone session created with roomId:", newroomId);
+          // console.log("Standalone session created with roomId:", newroomId);
           setIsConnected(false);
           setError(null);
-          console.log("Connected, ready to draw or send shapes");
+          // console.log("Connected, ready to draw or send shapes");
         } catch (error) {
           console.error("Failed to create standalone session", error);
         }
@@ -93,7 +87,7 @@ const SessionButton = ({ roomId }: { roomId: string }) => {
             onOpen: () => {
               setIsConnected(true);
               setError(null);
-              console.log("Connected, ready to draw or send shapes");
+              // console.log("Connected, ready to draw or send shapes");
             },
             onError: () => {
               setError("Failed to connect to session.");

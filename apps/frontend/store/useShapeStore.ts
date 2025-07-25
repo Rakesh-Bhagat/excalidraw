@@ -49,12 +49,14 @@ export const useShapeStore = create<ShapeStore>()(
       setOffset: (offset) => set(() => ({offset})),
       setZoom: (zoom) => set(()=>({zoom})),
       setSelectedShapeId: (id) => set(() => ({selectedShapeId: id})),
-      updateShape: (roomId, updateShape) => set((state) => ({
-        roomShapes: {
-          ...state.roomShapes,
-          [roomId]: state.roomShapes[roomId].map((s) => s.id === updateShape.id ? updateShape: s)
-        }
-      })),
+      updateShape: (roomId, updateShape) => {
+        set((state) => ({
+          roomShapes: {
+            ...state.roomShapes,
+            [roomId]: state.roomShapes[roomId].map((s) => s.id === updateShape.id ? updateShape: s)
+          }
+        }));
+      },
       copyShapesToStandalone: (fromRoomId) => set((state) => ({roomShapes: {
         ...state.roomShapes,
         standalone: [...(state.roomShapes[fromRoomId] || [])]

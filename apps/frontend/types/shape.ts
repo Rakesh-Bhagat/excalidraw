@@ -14,10 +14,13 @@ export type ShapeStyle ={
   hachureAngle?: number;
   hachureGap?: number;
   roughness?: number;
-  strokeStyle?: 'solid' | 'dashed' | 'dotted'
+  strokeStyle?: 'solid' | 'dashed' | 'dotted';
+  fontSize?: number;
+  fontFamily?: string;
+  textAlign?: 'left' | 'center' | 'right'
 }
 
-export type ShapeType = "rectangle" | "ellipse" | 'drag' | 'select' | 'diamond' | 'line' | 'arrow' | 'draw' | 'eraser' | 'deleted';
+export type ShapeType = "rectangle" | "ellipse" | 'drag' | 'select' | 'diamond' | 'line' | 'arrow' | 'draw' | 'eraser' | 'text' | 'deleted';
 export type ResizeHandle = "top-left" | "top-right" | "bottom-left" | "bottom-right";
 
 export type Shape = {
@@ -29,6 +32,7 @@ export type Shape = {
   width: number;
   height: number;
   drawable?: Drawable;
-  points?: Point[]
+  points?: Point[];
+  text?: string;
   style?: ShapeStyle;
 };

@@ -1,6 +1,6 @@
 import isEqual from "lodash.isequal";
 import { Point, ResizeHandle, Shape } from "@/types/shape";
-import { clearCanvas, drawShape, generateDrawable } from "@/utils/draw";
+import { clearCanvas, drawShape, generateDrawable, calculateTextDimensions } from "@/utils/draw";
 import { useEffect, useRef } from "react";
 import rough from "roughjs/bin/rough";
 import { RoughCanvas } from "roughjs/bin/canvas";
@@ -15,7 +15,12 @@ const useDrawShape = (
   offset: { x: number; y: number },
   zoom: number,
   roomId: string,
-  isSessionStarted: boolean
+  isSessionStarted: boolean,
+  textHandlers?: {
+    onTextClick: (x: number, y: number, shapeId?: string) => void;
+    onTextDoubleClick?: (shape: Shape) => void;
+  },
+  inPlaceEditingShapeId?: string
 ) => {
   const isDrawing = useRef(false);
   const erasedShapeIds = useRef<Set<string>>(new Set());
@@ -23,6 +28,12 @@ const useDrawShape = (
   const currentPoints = useRef<Point[]>([]);
   const startPoint = useRef<{ x: number; y: number } | null>(null);
   const resizeHandle = useRef<ResizeHandle | null>(null);
+  
+  // Double-click detection
+  const lastClickTime = useRef<number>(0);
+  const lastClickPosition = useRef<Point>({ x: 0, y: 0 });
+  const doubleClickThreshold = 500; // ms
+  const doubleClickDistance = 10; // pixels
 
   const roughCanvasRef = useRef<RoughCanvas | null>(null);
   const generatorRef = useRef<ReturnType<typeof rough.generator> | null>(null);
@@ -42,6 +53,7 @@ const useDrawShape = (
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+
     const drawFrame = () => {
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       clearCanvas(ctx, canvas.width, canvas.height);
@@ -49,11 +61,14 @@ const useDrawShape = (
 
       shapes.forEach((shape) => {
         if (shape.type === "deleted") return;
+        // Skip drawing the shape that's currently being edited in-place
+        if (inPlaceEditingShapeId && shape.id === inPlaceEditingShapeId) return;
         drawShape(
           roughCanvasRef.current!,
           shape,
           shape.id === selectedShapeId,
-          zoom
+          zoom,
+          ctx,
         );
       });
     };
@@ -62,7 +77,7 @@ const useDrawShape = (
     return () => {
       cancelAnimationFrame(frameId);
     };
-  }, [shapes, canvas, offset, zoom, selectedShapeId]);
+  }, [shapes, canvas, offset, zoom, selectedShapeId, inPlaceEditingShapeId]);
 
   useEffect(() => {
     if (!selectedShapeId || !generatorRef.current) return;
@@ -70,10 +85,13 @@ const useDrawShape = (
     const selectedShape = shapes.find((s) => s.id === selectedShapeId);
     if (!selectedShape) return;
     const currentStyle = useStyleStore.getState().style;
-    const targetStyle =
-      selectedShape.type === "draw"
-        ? { ...currentStyle, roughness: 0 }
-        : currentStyle;
+    
+    // For text shapes, preserve the current fontSize to avoid overwriting during resize
+    const targetStyle = selectedShape.type === "draw" 
+      ? { ...currentStyle, roughness: 0 }
+      : selectedShape.type === "text"
+      ? { ...currentStyle, fontSize: selectedShape.style?.fontSize || currentStyle.fontSize }
+      : currentStyle;
 
     if (isEqual(selectedShape.style, targetStyle)) return;
 
@@ -150,6 +168,7 @@ const useDrawShape = (
     return Math.sqrt(dx * dx + dy * dy) <= threshold / zoom;
   };
   const isPointInShape = (point: Point, shape: Shape): boolean => {
+    if(!shape) return false;
     if (shape.type === "line" || shape.type === "arrow") {
       return isPointNearLine(point, shape.start, shape.end, 5);
     }
@@ -162,22 +181,87 @@ const useDrawShape = (
       }
       return false;
     }
+    
     const normX = shape.width < 0 ? shape.start.x + shape.width : shape.start.x;
     const normY =
       shape.height < 0 ? shape.start.y + shape.height : shape.start.y;
     const normWidth = Math.abs(shape.width);
     const normHeight = Math.abs(shape.height);
-    return (
+    
+    const isInside = (
       point.x >= normX &&
       point.x <= normX + normWidth &&
       point.y >= normY &&
       point.y <= normY + normHeight
     );
+    
+
+    
+    return isInside;
   };
 
   const onMouseDown = (e: MouseEvent) => {
     if (currentTool === "drag") return;
     const mousePos = getMousePos(e);
+
+    // First, check for any shape that was clicked (including text shapes)
+    const clickedShape = [...shapes].find((shape) => {
+      if (shape.type === "deleted") return false;
+      return isPointInShape(mousePos, shape);
+    });
+
+    // Handle double-click detection for text shapes specifically
+    if (clickedShape && clickedShape.type === "text") {
+      const currentTime = Date.now();
+      const distanceFromLastClick = Math.sqrt(
+        Math.pow(mousePos.x - lastClickPosition.current.x, 2) +
+        Math.pow(mousePos.y - lastClickPosition.current.y, 2)
+      );
+      
+      const isDoubleClick = 
+        currentTime - lastClickTime.current < doubleClickThreshold &&
+        distanceFromLastClick < doubleClickDistance;
+      
+      
+      
+      if (isDoubleClick && textHandlers?.onTextDoubleClick) {
+        textHandlers.onTextDoubleClick(clickedShape);
+        return;
+      }
+    }
+
+    // Update click tracking for all clicks
+    lastClickTime.current = Date.now();
+    lastClickPosition.current = mousePos;
+
+    if(currentTool === "text") {
+      //console.log("Text tool clicked at:", mousePos);
+      //console.log("Available text shapes:", shapes.filter(s => s.type === "text"));
+      
+      const textShape = shapes.find(shape => {
+        if (shape.type !== "text") return false;
+        
+        // console.log(`Checking text shape ${shape.id}:`, {
+        //   shape: shape,
+        //   mousePos,
+        //   start: shape.start,
+        //   end: shape.end,
+        //   width: shape.width,
+        //   height: shape.height
+        // });
+        
+        return isPointInShape(mousePos, shape);
+      });
+
+      if(textShape) {
+        textHandlers?.onTextClick(textShape.start.x, textShape.start.y, textShape.id);
+      } else {
+        if (textHandlers) {
+          textHandlers.onTextClick(mousePos.x, mousePos.y);
+        }
+      }
+      return;
+    }
     if (currentTool === "eraser") {
       isDrawing.current = true;
       startPoint.current = mousePos;
@@ -215,12 +299,15 @@ const useDrawShape = (
             },
           ];
 
-          for (const corner of corners) {
-            if (isInHandle(mousePos, corner, handleSize)) {
-              resizeHandle.current = corner.name as ResizeHandle;
-              isDrawing.current = true;
-              startPoint.current = mousePos;
-              return;
+          // Check resize handles for all shapes including text, but exclude line and arrow
+          if (shape.type !== "line" && shape.type !== "arrow") {
+            for (const corner of corners) {
+              if (isInHandle(mousePos, corner, handleSize)) {
+                resizeHandle.current = corner.name as ResizeHandle;
+                isDrawing.current = true;
+                startPoint.current = mousePos;
+                return;
+              }
             }
           }
         }
@@ -232,10 +319,7 @@ const useDrawShape = (
       }
     }
 
-    const selected = [...shapes].find((shape) => {
-      if (shape.type === "deleted") return false;
-      return isPointInShape(mousePos, shape);
-    });
+    const selected = clickedShape;
 
     if (selected) {
       setSelectedShapeId(selected.id);
@@ -395,12 +479,13 @@ const useDrawShape = (
     ctx.setTransform(zoom, 0, 0, zoom, offset.x, offset.y);
 
     shapes.forEach((shape) => {
-      drawShape(roughCanvas, shape, shape.id === selectedShapeId, zoom);
+      drawShape(roughCanvas, shape, shape.id === selectedShapeId, zoom, ctx);
     });
 
     if (resizeHandle.current && selectedShapeId) {
       const shape = shapes.find((s) => s.id === selectedShapeId);
       if (!shape) return;
+      
 
       if (shape.type != "line" && shape.type != "arrow") {
         let newStart = { ...shape.start };
@@ -426,6 +511,70 @@ const useDrawShape = (
         }
         const newWidth = newEnd.x - newStart.x;
         const newHeight = newEnd.y - newStart.y;
+        
+        // Handle text shape resizing with font size scaling
+        if (shape.type === "text") {
+          // console.log("Resizing text shape:", shape.id);
+          // console.log("Original dimensions:", { width: shape.width, height: shape.height });
+          // console.log("New dimensions:", { width: newWidth, height: newHeight });
+          
+          const originalWidth = shape.width;
+          const originalHeight = shape.height;
+          const scaleX = Math.abs(newWidth / originalWidth);
+          const scaleY = Math.abs(newHeight / originalHeight);
+          // Use the average of X and Y scaling for proportional font scaling
+          const fontScale = (scaleX + scaleY) / 2;
+          
+          // Calculate new font size from style
+          const currentFontSize = shape.style?.fontSize || 16;
+          const newFontSize = Math.max(8, Math.min(72, currentFontSize * fontScale));
+          
+          // console.log("Font scaling:", {
+          //   scaleX,
+          //   scaleY,
+          //   fontScale,
+          //   currentFontSize,
+          //   newFontSize
+          // });
+          
+          // Recalculate text dimensions with new font size
+          const newStyle = {
+            ...shape.style,
+            fontSize: newFontSize,
+          };
+          const { width: textWidth, height: textHeight } = calculateTextDimensions(
+            shape.text || "",
+            newStyle,
+            zoom,
+            ctx
+          );
+          
+          
+          const updatedShape: Shape = {
+            ...shape,
+            start: newStart,
+            end: { x: newStart.x + textWidth, y: newStart.y + textHeight },
+            width: textWidth,
+            height: textHeight,
+            style: {
+              ...shape.style,
+              fontSize: newFontSize,
+            },
+          };
+          
+            // console.log("Updated shape fontSize:", updatedShape.style?.fontSize);
+            // console.log("Updated shape dimensions:", { width: updatedShape.width, height: updatedShape.height });
+          
+          // console.log("Before updateShape - current shapes count:", shapes.length);
+          updateShape(roomId, updatedShape);
+          // console.log("After updateShape called");
+          
+          if (isSessionStarted) {
+            wsClient.sendShape(roomId, updatedShape);
+          }
+          return;
+        }
+
         let updatedPoints = shape.points;
         if (shape.type === "draw" && shape.points) {
           const scaleX = newWidth / shape.width;
@@ -489,7 +638,7 @@ const useDrawShape = (
           ...shape,
           style: previewStyle,
         };
-        drawShape(roughCanvas, previewShape, isSelected, zoom);
+        drawShape(roughCanvas, previewShape, isSelected, zoom, ctx);
       });
       return;
     }
@@ -531,7 +680,7 @@ const useDrawShape = (
             zoom
           ) ?? undefined,
       };
-      drawShape(roughCanvas, previewShape, false, zoom);
+      drawShape(roughCanvas, previewShape, false, zoom, ctx);
       return;
     }
 
@@ -617,7 +766,7 @@ const useDrawShape = (
         ) ?? undefined,
     };
 
-    drawShape(roughCanvas, previewShape, false, zoom);
+    drawShape(roughCanvas, previewShape, false, zoom, ctx);
   };
   return { onMouseDown, onMouseMove, onMouseUp };
 };

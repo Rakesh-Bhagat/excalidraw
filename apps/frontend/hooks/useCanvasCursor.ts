@@ -66,9 +66,42 @@ export const useCanvasCursor = ({
         mouse.y <= handle.y + size / 2
       );
     };
+    const isPointInShape = (point: Point, shape: Shape): boolean => {
+  if (shape.type === "line" || shape.type === "arrow") {
+    return isPointNearLine(point, shape.start, shape.end, 5);
+  }
+  
+  // if (shape.type === "draw" && shape.points) {
+  //   for (let i = 0; i < shape.points.length - 1; i++) {
+  //     if (isPointNearLine(point, shape.points[i], shape.points[i + 1], 5)) {
+  //       return true;
+  //     }
+  //   }
+  //   return false;
+  // }
+   const normX = shape.width < 0 ? shape.start.x + shape.width : shape.start.x;
+  const normY = shape.height < 0 ? shape.start.y + shape.height : shape.start.y;
+  const normWidth = Math.abs(shape.width);
+  const normHeight = Math.abs(shape.height);
+
+  return (
+    point.x >= normX &&
+    point.x <= normX + normWidth &&
+    point.y >= normY &&
+    point.y <= normY + normHeight
+  );
+}
 
     const handleCursor = (e: MouseEvent) => {
       if (!canvas) return;
+
+      if(tool === 'text'){
+        const mousePos = getMousePos(e);
+        const textShape = shapes.find((shape: Shape) => shape.type === 'text' && isPointInShape(mousePos, shape));
+
+        canvas.style.cursor = textShape ? 'text' : 'crosshair';
+        return;
+      }
 
       if (tool === "drag") {
         canvas.style.cursor = isDragging ? "grabbing" : "grab";
@@ -104,18 +137,18 @@ export const useCanvasCursor = ({
           canvas.style.cursor = isNearLine ? "move" : "crosshair";
           return;
         }
-        if(shape.type === 'draw' && shape.points){
-          const mousePos = getMousePos(e);
-          let isNearPath = false;
-          for(let i = 0; i < shape.points.length - 1; i++) {
-            if(isPointNearLine(mousePos, shape.points[i], shape.points[i + 1], 5 / zoom)) {
-              isNearPath = true;
-              break;
-            }
-        }
-        canvas.style.cursor = isNearPath ? "move" : "crosshair";
-        return;
-        }
+        // if(shape.type === 'draw' && shape.points){
+        //   const mousePos = getMousePos(e);
+        //   let isNearPath = false;
+        //   for(let i = 0; i < shape.points.length - 1; i++) {
+        //     if(isPointNearLine(mousePos, shape.points[i], shape.points[i + 1], 5 / zoom)) {
+        //       isNearPath = true;
+        //       break;
+        //     }
+        // }
+        // canvas.style.cursor = isNearPath ? "move" : "crosshair";
+        // return;
+        // }
 
         const normX =
           shape.width < 0 ? shape.start.x + shape.width : shape.start.x;
