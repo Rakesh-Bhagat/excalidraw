@@ -35,7 +35,7 @@ const Navbar = () => {
   return (
     <div className="mx-auto flex justify-between items-center  bg-[#1f2937] p-4">
       <div className="flex text-3xl text-gray-50  ">
-        <h1 className="font-bold font-mono">SketchFlow</h1>
+        <h1 className="font-bold font-mono">SketchyDraw</h1>
       </div>
       <div>
           <Link href="/canvas">

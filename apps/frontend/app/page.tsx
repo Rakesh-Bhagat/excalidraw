@@ -81,7 +81,7 @@ export default function Home() {
       </section>
       <section className="container mx-auto px-4 py-20">
         <h3 className=" text-white text-4xl text-center font-bold mb-4">
-          Why Choose SketchFlow?
+          Why Choose SketchyDraw?
         </h3>
         <p className="text-lg text-gray-400 max-w-2xl mb-16 text-center mx-auto">
           Built for creative minds who need to collaborate seamlessly
@@ -247,7 +247,7 @@ export default function Home() {
             Ready to Start Sketching?
           </h3>
           <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-            Join thousands of teams already using SketchFlow for their visual
+            Join thousands of teams already using SketchyDraw for their visual
             collaboration needs
           </p>
           <button className=" w-xs md:w-sm items-center rounded-xl font-semibold mx-auto flex justify-center bg-blue-600 hover:bg-blue-700 text-white text-md md:text-xl  px-12 py-5 border-2 border-dashed border-blue-500 font-mono transform hover:scale-105 transition-all duration-200">
@@ -261,8 +261,8 @@ export default function Home() {
   <div className="container mx-auto px-4">
     <div className="flex flex-col md:flex-row justify-between items-center gap-4">
       <div className="flex items-center space-x-3">
-        
-        <span className="text-xl font-bold text-white font-mono">SketchFlow</span>
+
+        <span className="text-xl font-bold text-white font-mono">SketchyDraw</span>
       </div>
 
       <p className="text-sm text-gray-400 font-mono text-center md:text-right">
