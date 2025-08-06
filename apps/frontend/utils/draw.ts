@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Shape, ShapeStyle } from "@/types/shape";
 import { RoughCanvas } from "roughjs/bin/canvas";
 import { RoughGenerator } from "roughjs/bin/generator";

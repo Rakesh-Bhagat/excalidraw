@@ -1,0 +1,64 @@
+
+
+services:
+  http-server:
+    build:
+      context: .
+      dockerfile: apps/http-server/Dockerfile.http
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - PORT=8000
+      - NODE_ENV=production
+    ports:
+      - "8000:8000"
+    networks:
+      - draw-app-network
+    restart: unless-stopped
+
+  ws-server:
+    build:
+      context: .
+      dockerfile: apps/ws/Dockerfile.ws
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - PORT=8080
+      - NODE_ENV=production
+    ports:
+      - "8080:8080"
+    networks:
+      - draw-app-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile.frontend
+    environment:
+      - NEXT_PUBLIC_HTTP_SERVER_URL=${NEXT_PUBLIC_HTTP_SERVER_URL}
+      - NEXT_PUBLIC_WS_SERVER_URL=${NEXT_PUBLIC_WS_SERVER_URL}
+      - NODE_ENV=production
+    ports:
+      - "3000:3000"
+    depends_on:
+      - http-server
+      - ws-server
+    networks:
+      - draw-app-network
+    restart: unless-stopped
+
+  nginx:
+    image: nginxproxy/nginx-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    environment:
+      - DEFAULT_HOST=localhost
+    networks:
+      - draw-app-network
+
+networks:
+  draw-app-network:
+    driver: bridge

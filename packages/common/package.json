@@ -5,9 +5,10 @@
   "main": "index.js",
   "type": "module",
   "exports": {
-    "./types": "./src/types.ts"
+    "./types": "./dist/types.js"
   },
   "scripts": {
+    "build": "tsc -b"
   },
   "dependencies": {
     "@repo/typescript-config": "workspace:*",

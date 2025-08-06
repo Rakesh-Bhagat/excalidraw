@@ -87,7 +87,7 @@ const Canvas = () => {
           if (ctx) {
             const dimensions = calculateTextDimensions(
               text,
-              existingShape.style,
+              existingShape.style || {},
               zoom,
               ctx
             );
@@ -134,7 +134,7 @@ const Canvas = () => {
         if (ctx) {
           const dimensions = calculateTextDimensions(
             text,
-            textShape.style,
+            textShape.style || {},
             zoom,
             ctx
           );
@@ -166,7 +166,7 @@ const Canvas = () => {
         if (ctx) {
           const dimensions = calculateTextDimensions(
             text,
-            inPlaceEditingShape.style,
+            inPlaceEditingShape.style || {},
             zoom,
             ctx
           );

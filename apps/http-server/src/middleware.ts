@@ -1,6 +1,8 @@
-import { JWT_SECRET } from "@repo/backend-common/JWT_SECRET";
+
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
+
+const JWT_SECRET = process.env.JWT_SECRET || "my-secret-key"
 
 declare global {
   namespace Express {

@@ -7,7 +7,7 @@ import { useSessionStore } from "@/store/useSessionstore";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export const CanvasBoard = () => {
+const CanvasBoard = () => {
   const router = useRouter();
   const params = useParams();
   const roomId = params.roomId as string;

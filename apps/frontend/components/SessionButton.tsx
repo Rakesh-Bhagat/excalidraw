@@ -55,7 +55,7 @@ const SessionButton = ({ roomId }: { roomId: string }) => {
           if (standaloneShapes.length > 0) {
             // Save shapes to the new room
             try {
-              const shapesResponse = await axios.post(
+              await axios.post(
                 `http://localhost:8000/bulkShapes/${newroomId}`,
                 {
                   shapes: standaloneShapes,

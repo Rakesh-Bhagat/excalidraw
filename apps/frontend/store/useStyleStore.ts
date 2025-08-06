@@ -1,6 +1,6 @@
 import { ShapeStyle } from "@/types/shape";
 import { create } from "zustand";
-export type canvasColor = "#121212" | "#161718" | "#13171c"  | "#181605" | "#1b1615"
+export type canvasColor = "#121212" | "#161718" | "#13171c"  | "#181605" | "#1b1615" | "#000000";
 interface StyleStore {
   canvasBg: canvasColor,
   setCanvasBg: (color: canvasColor)=>void,

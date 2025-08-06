@@ -4,7 +4,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Menu, Github, Trash2, Download, Upload } from "lucide-react";
 import { useShapeStore } from "@/store/useShapeStore";
-import { useStyleStore } from "@/store/useStyleStore";
+import { useStyleStore, canvasColor } from "@/store/useStyleStore";
 import { useParams, usePathname } from "next/navigation";
 
 const MenuDropdown = () => {
@@ -20,7 +20,7 @@ const MenuDropdown = () => {
   const { canvasBg, setCanvasBg } = useStyleStore();
 
   // Canvas background options
-  const backgroundOptions = [
+  const backgroundOptions: { color: canvasColor; name: string }[] = [
     { color: "#121212", name: "Dark Gray" },
     { color: "#161718", name: "Charcoal" },
     { color: "#13171c", name: "Dark Blue" },

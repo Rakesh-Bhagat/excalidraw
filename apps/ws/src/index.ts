@@ -1,7 +1,7 @@
 import { WebSocket, WebSocketServer } from "ws";
 import jwt from "jsonwebtoken";
-import { JWT_SECRET } from "@repo/backend-common/JWT_SECRET";
-import { prisma } from "@repo/db/client";
+import { prisma } from "../../../packages/db/dist/index.js";
+const JWT_SECRET = process.env.JWT_SECRET!;
 
 const wss = new WebSocketServer({ port: 8080 });
 
@@ -87,7 +87,7 @@ wss.on("connection", (ws, request) => {
       // Send existing shapes
       const existingShapes = await prisma.shape.findMany({ where: { roomId } });
 
-      existingShapes.forEach((shape) => {
+      existingShapes.forEach((shape: any) => {
         try {
           const parsedShape = JSON.parse(shape.message); // parse from DB string
           ws.send(

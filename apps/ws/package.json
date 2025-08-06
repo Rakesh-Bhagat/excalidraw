@@ -1,5 +1,5 @@
 {
-  "name": "ws",
+  "name": "@repo/ws",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -7,6 +7,12 @@
     "build": "tsc -b",
     "start": "node ./dist/index.js",
     "dev": "tsc -b && node ./dist/index.js"
+  },
+  "dependencies": {
+    "@types/ws": "^8.18.1",
+    "ws": "^8.18.2",
+    "@types/jsonwebtoken": "^9.0.9",
+    "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
@@ -16,11 +22,5 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
-    "@types/jsonwebtoken": "^9.0.9",
-    "@types/ws": "^8.18.1",
-    "jsonwebtoken": "^9.0.2",
-    "ws": "^8.18.2"
-  }
+  "type": "commonjs"
 }

@@ -1,15 +1,16 @@
 import express, { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { JWT_SECRET } from "@repo/backend-common/JWT_SECRET";
 import middleware from "./middleware";
-import { prisma } from "@repo/db/client";
 import bcrypt from "bcrypt";
 import cors from "cors";
 import {
   createRoomSchema,
   createUserSchema,
   signinSchema,
-} from "@repo/common/types";
+} from "../../../packages/common//dist/types.js";
+
+import { prisma } from "../../../packages/db/dist/index.js";
+const JWT_SECRET = process.env.JWT_SECRET!;
 
 const app = express();
 app.use(
