@@ -15,7 +15,7 @@ const Signup = () => {
   const handleSubmit = async () => {
     try {
       const response = await axios.post(
-        "http://localhost:8000/signin",
+        "http://ec2-54-147-49-18.compute-1.amazonaws.com:8000/signin",
         { username, password },
         { withCredentials: true }
       );

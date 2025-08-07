@@ -35,7 +35,7 @@ const Dashboard = () => {
   useEffect(() => {
     async function getRooms() {
       try {
-        const response = await axios.get("http://localhost:8000/rooms", {
+        const response = await axios.get("http://ec2-54-147-49-18.compute-1.amazonaws.com:8000/rooms", {
           headers: {
             Authorization: localStorage.getItem("token"),
           },
@@ -55,7 +55,7 @@ const Dashboard = () => {
   }, []);
   const handleDelete = async (roomId: string) => {
     try {
-      await axios.delete("http://localhost:8000/room", {
+      await axios.delete("http://ec2-54-147-49-18.compute-1.amazonaws.com:8000/room", {
         headers: {
           Authorization: localStorage.getItem("token"),
         },
@@ -73,7 +73,7 @@ const Dashboard = () => {
     console.log(roomName);
     try {
       const response = await axios.post(
-        "http://localhost:8000/room",
+        "http://ec2-54-147-49-18.compute-1.amazonaws.com:8000/room",
         {
           name: roomName,
         },

@@ -1,13 +1,15 @@
 import express, { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import middleware from "./middleware";
+import middleware from "./middleware.js";
 import bcrypt from "bcrypt";
 import cors from "cors";
+import dotenv from "dotenv";
+dotenv.config();
 import {
   createRoomSchema,
   createUserSchema,
   signinSchema,
-} from "../../../packages/common//dist/types.js";
+} from "../../../packages/common/dist/types.js"
 
 import { prisma } from "../../../packages/db/dist/index.js";
 const JWT_SECRET = process.env.JWT_SECRET!;
@@ -15,7 +17,7 @@ const JWT_SECRET = process.env.JWT_SECRET!;
 const app = express();
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://localhost:3001"],
+    origin: ["http://localhost:3000", "http://localhost:3001", "http://ec2-54-147-49-18.compute-1.amazonaws.com:3000"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"],
   })

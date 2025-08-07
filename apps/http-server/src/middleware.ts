@@ -1,8 +1,9 @@
 
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "my-secret-key"
+import dotenv from "dotenv";
+dotenv.config();
+const JWT_SECRET = process.env.JWT_SECRET!
 
 declare global {
   namespace Express {
