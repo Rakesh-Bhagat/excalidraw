@@ -10,7 +10,8 @@ import { useEffect, useState } from "react";
 const CanvasBoard = () => {
   const router = useRouter();
   const params = useParams();
-  const roomId = params.roomId as string;
+  const roomId = params?.roomId as string | undefined;
+  console.log("roomId:", roomId);
 
   const isSessionStarted = useSessionStore((state) => state.isSessionStarted);
   const setSessionStarted = useSessionStore((state) => state.setSessionStarted);
@@ -50,7 +51,7 @@ const CanvasBoard = () => {
         <ToolBox />
       </div>
       <div className="z-12 flex absolute top-3 right-3">
-        <SessionButton roomId={roomId}/>
+        <SessionButton roomId={roomId!}/>
       </div>
       <div>
         <Canvas />
