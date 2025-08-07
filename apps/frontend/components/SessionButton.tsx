@@ -36,8 +36,9 @@ const SessionButton = ({ roomId }: { roomId: string }) => {
       if (isStandalone) {
         try {
           const standaloneShapes = getShapes("standalone");
+          const serverUrl = process.env.NEXT_PUBLIC_HTTP_URL;
           const response = await axios.post(
-            "http://localhost:8000/room",
+            `${serverUrl}/room`,
             {
               name: `Canvas Session ${new Date().toLocaleString()}`,
             },
@@ -56,7 +57,7 @@ const SessionButton = ({ roomId }: { roomId: string }) => {
             // Save shapes to the new room
             try {
               await axios.post(
-                `http://localhost:8000/bulkShapes/${newroomId}`,
+                `${serverUrl}/bulkShapes/${newroomId}`,
                 {
                   shapes: standaloneShapes,
                 },
