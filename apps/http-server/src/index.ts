@@ -17,7 +17,13 @@ const JWT_SECRET = process.env.JWT_SECRET!;
 const app = express();
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://localhost:3001", process.env.EC2_INSTANCE_URL!],
+    origin: [
+      "http://localhost:3000", 
+      "http://localhost:3001",
+      "http://ec2-54-147-49-18.compute-1.amazonaws.com:3000",
+      "http://ec2-54-147-49-18.compute-1.amazonaws.com",
+      `${process.env.EC2_INSTANCE_URL}`,
+    ],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"],
   })
