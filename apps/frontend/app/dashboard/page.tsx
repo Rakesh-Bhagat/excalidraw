@@ -31,11 +31,12 @@ const Dashboard = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<string | null>(null);
+  const serverUrl = process.env.NEXT_PUBLIC_HTTP_URL
 
   useEffect(() => {
     async function getRooms() {
       try {
-        const response = await axios.get("http://ec2-54-147-49-18.compute-1.amazonaws.com:8000/rooms", {
+        const response = await axios.get(`${serverUrl}/rooms`, {
           headers: {
             Authorization: localStorage.getItem("token"),
           },
@@ -55,7 +56,7 @@ const Dashboard = () => {
   }, []);
   const handleDelete = async (roomId: string) => {
     try {
-      await axios.delete("http://ec2-54-147-49-18.compute-1.amazonaws.com:8000/room", {
+      await axios.delete(`${serverUrl}/room`, {
         headers: {
           Authorization: localStorage.getItem("token"),
         },
@@ -73,7 +74,7 @@ const Dashboard = () => {
     console.log(roomName);
     try {
       const response = await axios.post(
-        "http://ec2-54-147-49-18.compute-1.amazonaws.com:8000/room",
+        `${serverUrl}/room`,
         {
           name: roomName,
         },

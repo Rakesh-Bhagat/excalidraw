@@ -14,8 +14,9 @@ const Signup = () => {
 
   const handleSubmit = async () => {
     try {
+      const serverUrl = process.env.NEXT_PUBLIC_HTTP_URL;
       const response = await axios.post(
-        "http://ec2-54-147-49-18.compute-1.amazonaws.com:8000/signin",
+        `${serverUrl}/signin`,
         { username, password },
         { withCredentials: true }
       );

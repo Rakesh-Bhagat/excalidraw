@@ -7,6 +7,7 @@ import { RoughCanvas } from "roughjs/bin/canvas";
 import { useShapeStore } from "@/store/useShapeStore";
 import { wsClient } from "./useWSClient";
 import { useStyleStore } from "@/store/useStyleStore";
+import { generateUuid } from '@/utils/uuid';
 const useDrawShape = (
   canvas: HTMLCanvasElement | null,
   shapes: Shape[],
@@ -392,7 +393,7 @@ const useDrawShape = (
         roughness: 0,
       };
       const shape: Shape = {
-        id: crypto.randomUUID(),
+        id: generateUuid(),
         type: "draw",
         start,
         end,
@@ -429,7 +430,7 @@ const useDrawShape = (
 
     const currentStyle = useStyleStore.getState().style;
     const shape: Shape = {
-      id: crypto.randomUUID(),
+      id: generateUuid(),
       type: currentTool,
       start,
       end,

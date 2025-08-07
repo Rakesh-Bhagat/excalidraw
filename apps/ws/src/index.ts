@@ -1,6 +1,8 @@
 import { WebSocket, WebSocketServer } from "ws";
 import jwt from "jsonwebtoken";
 import { prisma } from "../../../packages/db/dist/index.js";
+import dotenv from "dotenv";
+dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET!;
 
 const wss = new WebSocketServer({ port: 8080 });

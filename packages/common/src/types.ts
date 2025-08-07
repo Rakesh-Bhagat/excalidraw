@@ -1,4 +1,4 @@
-import z from "zod"
+import {z} from "zod"
 
 export const createUserSchema = z.object({
     name: z.string().min(3),
@@ -22,6 +22,6 @@ export const createRoomSchema = z.object({
 // }
 
 
-// export type createUserInput = z.infer<typeof createUserSchema>;
-// export type signinInput = z.infer<typeof signinSchema>;
-// export type createRoomInput = z.infer<typeof createRoomSchema>;
+export type createUserInput = z.infer<typeof createUserSchema>;
+export type signinInput = z.infer<typeof signinSchema>;
+export type createRoomInput = z.infer<typeof createRoomSchema>;

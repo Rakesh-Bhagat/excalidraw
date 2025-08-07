@@ -16,7 +16,8 @@ const connect = (
   }
 ): Promise<void> => {
   return new Promise((resolve, reject) => {
-    const ws = new WebSocket(`ws://localhost:8080?token=${token}`);
+    const serverUrl = process.env.NEXT_PUBLIC_WS_URL;
+    const ws = new WebSocket(`${serverUrl}?token=${token}`);
     wsRef.current = ws;
 
     ws.onopen = () => {

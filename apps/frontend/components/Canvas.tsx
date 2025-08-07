@@ -16,6 +16,7 @@ import { calculateTextDimensions } from "@/utils/draw";
 import { InPlaceTextEditor } from "./InPlaceTextEditor";
 import { CanvasTextInput } from "./CanvasTextInput";
 import MenuDropdown from "./MenuDropdown";
+import { generateUuid } from "@/utils/uuid";
 
 const Canvas = () => {
   const params = useParams();
@@ -114,7 +115,7 @@ const Canvas = () => {
     } else {
       // Creating new text
       let textShape: Shape = {
-        id: crypto.randomUUID(),
+        id: generateUuid(),
         type: "text",
         start: { x: textInput.x, y: textInput.y },
         end: { x: textInput.x, y: textInput.y },

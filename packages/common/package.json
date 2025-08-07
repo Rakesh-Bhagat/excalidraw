@@ -5,7 +5,14 @@
   "main": "index.js",
   "type": "module",
   "exports": {
-    "./types": "./dist/types.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "import": "./dist/types.js"
+    }
   },
   "scripts": {
     "build": "tsc -b"

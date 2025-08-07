@@ -17,7 +17,7 @@ const JWT_SECRET = process.env.JWT_SECRET!;
 const app = express();
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://localhost:3001", "http://ec2-54-147-49-18.compute-1.amazonaws.com:3000"],
+    origin: ["http://localhost:3000", "http://localhost:3001", process.env.EC2_INSTANCE_URL!],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"],
   })
@@ -27,11 +27,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// // Allow preflight requests
-// app.options("*", cors({
-//   origin: "http://localhost:3000",
-//   credentials: true,
-// }));
 app.use(express.json());
 
 app.post("/signup", async (req: Request, res: Response): Promise<any> => {
