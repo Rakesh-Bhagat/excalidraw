@@ -20,8 +20,8 @@ app.use(
     origin: [
       "http://localhost:3000", 
       "http://localhost:3001",
-      "http://ec2-54-147-49-18.compute-1.amazonaws.com:3000",
-      "http://ec2-54-147-49-18.compute-1.amazonaws.com",
+      "http://localhost",
+      "https://sketchydraw.bhagat.dev",
       `${process.env.EC2_INSTANCE_URL}`,
     ],
     credentials: true,

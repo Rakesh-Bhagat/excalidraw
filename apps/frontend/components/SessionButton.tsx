@@ -36,7 +36,7 @@ const SessionButton = ({ roomId }: { roomId: string }) => {
       if (isStandalone) {
         try {
           const standaloneShapes = getShapes("standalone");
-          const serverUrl = process.env.NEXT_PUBLIC_HTTP_URL;
+          const serverUrl = process.env.NEXT_PUBLIC_HTTP_URL!;
           const response = await axios.post(
             `${serverUrl}/room`,
             {

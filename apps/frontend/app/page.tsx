@@ -250,7 +250,7 @@ export default function Home() {
             Join thousands of teams already using SketchyDraw for their visual
             collaboration needs
           </p>
-          <button className=" w-xs md:w-sm items-center rounded-xl font-semibold mx-auto flex justify-center bg-blue-600 hover:bg-blue-700 text-white text-md md:text-xl  px-12 py-5 border-2 border-dashed border-blue-500 font-mono transform hover:scale-105 transition-all duration-200">
+          <button className=" w-full items-center rounded-xl font-semibold mx-auto flex justify-center bg-blue-600 hover:bg-blue-700 text-white text-md md:text-xl  px-12 py-5 border-2 border-dashed border-blue-500 font-mono transform hover:scale-105 transition-all duration-200">
             <Sparkles className="mr-3 h-6 w-6" />
             Get Started Free
             <ArrowRight className="ml-3 h-6 w-6" />

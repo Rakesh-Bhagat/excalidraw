@@ -27,10 +27,12 @@ const CanvasBoard = () => {
   }, [router])
    useEffect(() => {
     if (!authCheck || !roomId || isSessionStarted) return;
+    console.log(roomId)
 
     const token = localStorage.getItem("token") || "";
 
     wsClient.connect(roomId, token, {
+      
       onOpen: () => {
         setSessionStarted(true);
         // console.log("Auto-connected to WebSocket session");

@@ -53,7 +53,7 @@ const Dashboard = () => {
       }
     }
     getRooms();
-  }, []);
+  }, [serverUrl]);
   const handleDelete = async (roomId: string) => {
     try {
       await axios.delete(`${serverUrl}/room`, {
