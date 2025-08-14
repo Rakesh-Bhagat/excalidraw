@@ -4,9 +4,8 @@ const path = require('path');
 const nextConfig = {
   output: 'standalone',
   transpilePackages: ['@draw-app/common'],
-  experimental: {
     outputFileTracingRoot: path.join(__dirname, '../../'),
-  },
+  
 };
 
 module.exports = nextConfig;
